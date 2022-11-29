@@ -1,7 +1,7 @@
 #ifndef PLANNER_H__
 #define PLANNER_H__
 
-#include "sensor.h"
+#include "Sensor/sensor.h"
 
 namespace CF_PLAN {
 

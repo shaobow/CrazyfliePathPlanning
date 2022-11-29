@@ -4,12 +4,15 @@
 #include <vector>
 
 #include "Collision/CollisionSdkC_Api.h"
+#include "World/world.h"
 #include "util.h"
 
 namespace CF_PLAN {
 
 class Sensor {
  private:
+  // static world
+  World static_world;
   // local bullet collision world
   plCollisionWorldHandle collision_world;
   std::vector<plCollisionObjectHandle> collision_objects_list;
