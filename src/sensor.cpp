@@ -48,21 +48,21 @@ bool Sensor::update_collision_world(Coord robot_state) {
   sphere_A->setCollisionShape(sphere_shape);
   sphere_B->setCollisionShape(sphere_shape);
   // Add the collision objects to our collision world
-  bt_collision_world->addCollisionObject(sphere_A);
-  bt_collision_world->addCollisionObject(sphere_B);
+  collision_world->addCollisionObject(sphere_A);
+  collision_world->addCollisionObject(sphere_B);
 
   // Perform collision detection
-  bt_collision_world->performDiscreteCollisionDetection();
+  collision_world->performDiscreteCollisionDetection();
 
-  int numManifolds = bt_collision_world->getDispatcher()->getNumManifolds();
+  int numManifolds = collision_world->getDispatcher()->getNumManifolds();
   // For each contact manifold
   for (int i = 0; i < numManifolds; i++) {
     btPersistentManifold* contactManifold =
-        bt_collision_world->getDispatcher()->getManifoldByIndexInternal(i);
-    btCollisionObject* obA =
-        static_cast<btCollisionObject*>(contactManifold->getBody0());
-    btCollisionObject* obB =
-        static_cast<btCollisionObject*>(contactManifold->getBody1());
+        collision_world->getDispatcher()->getManifoldByIndexInternal(i);
+    const btCollisionObject* obA =
+        static_cast<const btCollisionObject*>(contactManifold->getBody0());
+    const btCollisionObject* obB =
+        static_cast<const btCollisionObject*>(contactManifold->getBody1());
     contactManifold->refreshContactPoints(obA->getWorldTransform(),
                                           obB->getWorldTransform());
     int numContacts = contactManifold->getNumContacts();
@@ -73,9 +73,9 @@ bool Sensor::update_collision_world(Coord robot_state) {
       btVector3 ptA = pt.getPositionWorldOnA();
       btVector3 ptB = pt.getPositionWorldOnB();
       double ptdist = pt.getDistance();
-      
     }
   }
+  return false;
 }
-return false;
+
 }  // namespace CF_PLAN
