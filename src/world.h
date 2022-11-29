@@ -12,7 +12,7 @@ class World {
   // boundary of the world
   Boundary world_bound;
   // load world map from predefined text file
-  bool load_world(const std::string& file_path);
+  void load_world(const std::string& file_path);
 
  public:
   World(const std::string& file_path);

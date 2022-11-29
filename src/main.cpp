@@ -3,5 +3,5 @@
 #include "planner.h"
 
 int main(int, char**) {
-    Planner planner;
+    CF_PLAN::Planner planner;
 }
