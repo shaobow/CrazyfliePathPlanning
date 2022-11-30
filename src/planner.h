@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <map>
 #include <queue>
 #include <unordered_set>
 #include <utility>
@@ -41,6 +42,15 @@ struct compareFValue {
   }
 };
 
+struct arrayHash {
+  size_t operator()(const array<int, 3>& arr) const {
+    size_t hx = std::hash<int>{}(arr[0]);
+    size_t hy = std::hash<int>{}(arr[1]) << 1;
+    size_t hz = std::hash<int>{}(arr[2]) << 2;
+    return (hx ^ hy) ^ hz;
+  }
+};
+
 class Planner {
  private:
   // 26-connected grid
@@ -66,6 +76,9 @@ class Planner {
 
   // A* search
   priority_queue<node*, vector<node*>, compareFValue> openList;
+  unordered_map<array<int, 3>, int, arrayHash>
+      umap;  // use coord. to find idx of ptr address
+
   node* s_goal;
   node* s_start;
   vector<node*> solution;
@@ -122,9 +135,9 @@ class Planner {
         int newY = s_current->getY() + dY[dir];
         int newZ = s_current->getZ() + dZ[dir];
 
-        if (sensor.is_valid(Coord((newX + 0.5) * CF_size,
-                                  (newY + 0.5) * CF_size,
-                                  (newZ + 0.5) * CF_size))) {
+        if (sensor.is_valid(Coord((btScalar)(newX + 0.5) * CF_size,
+                                  (btScalar)(newY + 0.5) * CF_size,
+                                  (btScalar)(newZ + 0.5) * CF_size))) {
           node* s_pred = new node(newX, newY, newZ);
           if (s_pred->get_g_value() > (cost[dir] + s_current->get_g_value())) {
             s_pred->set_g_value(cost[dir] + s_current->get_g_value());
@@ -137,6 +150,7 @@ class Planner {
       }
 
       s_current = openList.top();
+      s_current->print_node();
     }
   }
 
@@ -154,7 +168,6 @@ class Planner {
       curr = curr->get_back_ptr();
     }
     solution.push_back(curr);
-    // reverse(solution.begin(), solution.end());
   }
 
   void printPath() {
