@@ -34,6 +34,12 @@ struct compareKey {
   }
 };
 
+struct compareFValue {
+  bool operator()(const node* lhs, const node* rhs) {
+    return lhs->get_f_value() > rhs->get_f_value();
+  }
+};
+
 struct PointedObjHash {
   size_t operator()(node* const& n) const {
     size_t hx = std::hash<int>{}(n->getX());
@@ -73,7 +79,7 @@ class Planner {
   int robotposeZ;
 
   // A* search
-  priority_queue<node*, vector<node*>, compareKey> openList;
+  priority_queue<node*, vector<node*>, compareFValue> openList;
   unordered_set<node*, PointedObjHash, PointedObjEq> closedList;
   node* s_goal;
   node* s_start;
@@ -117,6 +123,9 @@ class Planner {
            this->robotposeZ == currentPose->getZ();
   }
 
+  // TODO: implemenet A* 
+
+  /*
   // Key -> Operator Overloading Functions
   bool ifSmallerKeys(pair<double, double>& lhs, pair<double, double>& rhs) {
     if (lhs.first < rhs.first)
@@ -125,8 +134,10 @@ class Planner {
       return true;
     return false;
   }
+  */
 
   /* For checking priority_quete auto-update after key values are changed */
+  /*
   bool ifEqualKeys(pair<double, double>& lhs, pair<double, double>& rhs) {
     return lhs.first == rhs.first && lhs.second == rhs.second;
   }
@@ -143,9 +154,9 @@ class Planner {
   }
 
   // TODO: implement D* Lite
-  pair<int, int> calculateKey(node* s) {
+  pair<double, double> calculateKey(node* s) {
     s->estimate_h_value(this->s_start);
-    int min_g_rhs =
+    double min_g_rhs =
         min(s->get_g_value(), s->get_rhs_value());  // min(g(s), rhs(s))
     s->set_key(min_g_rhs + s->get_h_value() + this->k_m,
                min_g_rhs);  // [min(g(s), rhs(s)) + h(s_start, s) + k_m;
@@ -223,6 +234,9 @@ class Planner {
       // TODO: implement rest of D* Lite
     }
   }
+
+  */
+
 };
 }  // namespace CF_PLAN
 
