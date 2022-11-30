@@ -178,6 +178,17 @@ class Planner {
     reverse(solution.begin(), solution.end());
   }
 
+  void printPath() {
+    int i = 0;
+    for (auto node : solution) {
+      cout << "step " << i;
+      cout << "x=" << node->getX() << " "
+           << "y=" << node->getY() << " "
+           << "z=" << node->getZ() << "\n";
+      i++;
+    }
+  }
+
   // TODO: implemenet A*
 
   /*

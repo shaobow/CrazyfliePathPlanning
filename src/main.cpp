@@ -80,4 +80,5 @@ int main(int, char**) {
   int goal_x = 1, goal_y = 0, goal_z = 0;
   CF_PLAN::Planner astar(robot_x, robot_y, robot_z, goal_x, goal_y, goal_z);
   astar.plan();
+  astar.printPath();
 }
