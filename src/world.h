@@ -19,6 +19,8 @@ class World {
   // load world map from predefined text file
   void load_world(const std::string& file_path);
 
+  void load_test_world();
+
  public:
   World(const std::string& file_path);
   ~World();

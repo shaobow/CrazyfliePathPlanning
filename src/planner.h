@@ -14,6 +14,8 @@
 
 using namespace std;
 
+namespace CF_PLAN {
+
 #define NUMOFDIRS 26
 #define crazyFlie_width 0.10
 #define crazyFlie_length 0.10
@@ -46,8 +48,6 @@ struct PointedObjEq {
     return lhs == rhs && lhs->get_key() == rhs->get_key();
   }
 };
-
-namespace CF_PLAN {
 
 class Planner {
  private:
