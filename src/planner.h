@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <map>
 #include <queue>
 #include <unordered_set>
 #include <utility>
@@ -22,22 +23,12 @@ namespace CF_PLAN {
 #define crazyFlie_height 0.10
 #define CF_size 0.10
 
-struct compareKey {
-  bool operator()(const node* lhs, const node* rhs) {
-    pair<double, double> key1 = lhs->get_key();
-    pair<double, double> key2 = rhs->get_key();
-
-    if (key1.first > key2.first)
-      return true;  // ordering in smallest key_1 value
-    else if (key1.first == key2.first && key1.second > key2.second)
-      return true;
-    return false;
-  }
-};
-
-struct compareFValue {
-  bool operator()(const node* lhs, const node* rhs) {
-    return lhs->get_f_value() > rhs->get_f_value();
+struct arrayHash {
+  size_t operator()(const array<int, 3>& arr) const {
+    size_t hx = std::hash<int>{}(arr[0]);
+    size_t hy = std::hash<int>{}(arr[1]) << 1;
+    size_t hz = std::hash<int>{}(arr[2]) << 2;
+    return (hx ^ hy) ^ hz;
   }
 };
 
@@ -65,9 +56,14 @@ class Planner {
   int robotposeZ;
 
   // A* search
-  priority_queue<node*, vector<node*>, compareFValue> openList;
+  unordered_map<array<int, 3>, int, arrayHash>
+      umap;  // use coord. to find idx of ptr address
+
+  vector<unique_ptr<node>> node_list;
   node* s_goal;
   node* s_start;
+  Idx start_idx;
+  Idx goal_idx;
   vector<node*> solution;
 
   // sensor for local map update
@@ -76,14 +72,25 @@ class Planner {
   // check if successor state is valid
   bool isValid(const Coord& robot_state);
 
+  int add_node(int x, int y, int z) {
+    auto temp = make_unique<node>(x, y, z);
+    node_list.push_back(move(temp));
+    return node_list.size() - 1;
+  }
+
  public:
   Planner(int robot_x, int robot_y, int robot_z, int goal_x, int goal_y,
           int goal_z) {
     this->updateRobotPose(robot_x, robot_y, robot_z);
     this->setGoalPose(goal_x, goal_y, goal_z);
-    this->s_goal = new node(this->goalposeX, this->goalposeY, this->goalposeZ);
-    this->s_start =
-        new node(this->robotposeX, this->robotposeY, this->robotposeZ);
+
+    goal_idx = add_node(goal_x, goal_y, goal_z);
+    s_goal = node_list[goal_idx].get();
+    umap[{goal_x, goal_y, goal_z}] = goal_idx;
+
+    start_idx = add_node(this->robotposeX, this->robotposeY, this->robotposeZ);
+    s_start = node_list[start_idx].get();
+    umap[{robotposeX, robotposeY, robotposeZ}] = start_idx;
   }
 
   ~Planner() = default;
@@ -107,7 +114,26 @@ class Planner {
   }
 
   void computePath() {
-    node* s_current = openList.top();
+    auto compr = [this](const Idx& lhs, const Idx& rhs) {
+      auto h1 = node_list[lhs]->get_h_value();
+      auto h2 = node_list[rhs]->get_h_value();
+      auto v1 = node_list[lhs]->get_f_value();
+      auto v2 = node_list[rhs]->get_f_value();
+
+      // smallest f value on the top
+      if (v1 > v2) return true;
+      // break tie with heuristic
+      if (v1 == v2) {
+        if (h1 > h2) return true;
+      }
+      return false;
+    };
+
+    priority_queue<Idx, vector<Idx>, decltype(compr)> openList(compr);
+
+    openList.push(goal_idx);
+
+    node* s_current = node_list[openList.top()].get();
     while (openList.size() != 0) {
       if (*s_current == *s_start) {
         cout << "** FOUND PATH **" << endl;
@@ -122,27 +148,36 @@ class Planner {
         int newY = s_current->getY() + dY[dir];
         int newZ = s_current->getZ() + dZ[dir];
 
-        if (sensor.is_valid(Coord((newX + 0.5) * CF_size,
-                                  (newY + 0.5) * CF_size,
-                                  (newZ + 0.5) * CF_size))) {
-          node* s_pred = new node(newX, newY, newZ);
+        if (sensor.is_valid(Coord((btScalar)(newX + 0.5) * CF_size,
+                                  (btScalar)(newY + 0.5) * CF_size,
+                                  (btScalar)(newZ + 0.5) * CF_size))) {
+          // get unique node*
+          Idx new_idx;
+          if (umap.count({newX, newY, newZ}) == 0) {
+            new_idx = add_node(newX, newY, newZ);
+            umap[{newX, newY, newZ}] = new_idx;
+          } else {
+            new_idx = umap[{newX, newY, newZ}];
+          }
+          node* s_pred = node_list[new_idx].get();
+
           if (s_pred->get_g_value() > (cost[dir] + s_current->get_g_value())) {
             s_pred->set_g_value(cost[dir] + s_current->get_g_value());
             s_pred->estimate_h_value(s_start);
             s_pred->set_f_value();
             s_pred->set_back_ptr(s_current);
-            openList.push(s_pred);
+            openList.push(new_idx);
           }
         }
       }
 
-      s_current = openList.top();
+      s_current = node_list[openList.top()].get();
+      s_current->print_node();
     }
   }
 
   void plan() {
     s_goal->set_g_value(0);
-    openList.push(s_goal);
     computePath();
   }
 
@@ -154,7 +189,6 @@ class Planner {
       curr = curr->get_back_ptr();
     }
     solution.push_back(curr);
-    // reverse(solution.begin(), solution.end());
   }
 
   void printPath() {

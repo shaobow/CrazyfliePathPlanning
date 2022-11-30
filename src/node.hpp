@@ -96,4 +96,8 @@ class node {
   pair<double, double> get_key() const { return this->key; }
 
   node* get_back_ptr() const { return this->backpointer; }
+
+  void print_node() const {
+    cout << "node: " << this->x << ", " << this->y << ", " << this->z << endl;
+  }
 };

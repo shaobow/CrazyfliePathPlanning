@@ -5,7 +5,7 @@ namespace CF_PLAN {
 namespace {
 const std::string MAP_PATH = " ";
 constexpr int MAX_OBJ_NUM = 5000;
-constexpr double robot_size = 1e-1;  // half of width
+constexpr double robot_size = 5e-2;  // half of width
 }  // namespace
 
 Sensor::Sensor() {
@@ -37,8 +37,8 @@ Sensor::Sensor() {
   box_A->setCollisionShape(box_shape_A);
   box_B->setCollisionShape(box_shape_B);
   // Add the collision objects to our collision world
-  collision_world->addCollisionObject(box_A);
-  collision_world->addCollisionObject(box_B);
+  collision_world->addCollisionObject(box_A, 2, 1);
+  collision_world->addCollisionObject(box_B, 2, 1);
 
   // init robot object
   robot_obj = std::make_unique<btCollisionObject>();
@@ -55,7 +55,7 @@ Sensor::Sensor() {
   robot_obj->setCollisionShape(robot_shape);
 
   // Add the collision objects to our collision world
-  collision_world->addCollisionObject(robot_obj.get());
+  collision_world->addCollisionObject(robot_obj.get(), 1, 2);
 
   // Perform collision detection
   collision_world->performDiscreteCollisionDetection();
@@ -69,9 +69,7 @@ bool Sensor::is_valid(const Coord& robot_state) {
   // update robot location
   btTransform btTrans;
   btTrans.setIdentity();
-  btTrans.setOrigin(btVector3((btScalar)robot_state.getX(),
-                              (btScalar)robot_state.getY(),
-                              (btScalar)robot_state.getZ()));
+  btTrans.setOrigin(robot_state);
   robot_obj->setWorldTransform(btTrans);
 
   // Perform collision detection
