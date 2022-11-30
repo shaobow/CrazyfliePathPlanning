@@ -109,8 +109,12 @@ class Planner {
   void computePath() {
     node* s_current = openList.top();
     while (openList.size() != 0) {
-      if (s_current == s_start) {
+      if (s_current->getX() == s_start->getX() &&
+          s_current->getY() == s_start->getY() &&
+          s_current->getZ() == s_start->getZ()) {
+        cout << "** FOUND PATH **" << endl;
         backTrack(s_current);
+        return;
       }
 
       openList.pop();
