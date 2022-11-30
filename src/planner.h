@@ -4,6 +4,7 @@
 #include <math.h>
 
 #include <algorithm>
+#include <chrono>
 #include <iostream>
 #include <map>
 #include <queue>
@@ -172,7 +173,7 @@ class Planner {
       }
 
       s_current = node_list[openList.top()].get();
-      s_current->print_node();
+      // s_current->print_node();
     }
   }
 
