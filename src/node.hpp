@@ -6,7 +6,7 @@
 #include <vector>
 
 #define MAXDOUBLE DBL_MAX
-#define w 1
+constexpr double weight = 1.0;
 
 using namespace std;
 
@@ -27,7 +27,7 @@ class node {
   double g_value = MAXDOUBLE;
   double h_value = MAXDOUBLE;
 
-  double f_value = g_value + h_value;
+  double f_value = g_value + weight * h_value;
 
   // D* Lite search
   double rhs_value;
@@ -73,7 +73,7 @@ class node {
                                              // this->h_value = 0;
   }
 
-  void set_f_value() { this->f_value = this->g_value + w * this->h_value; }
+  void set_f_value() { this->f_value = this->g_value + weight * this->h_value; }
 
   void set_rhs_value(double rhs_value) { this->rhs_value = rhs_value; }
 

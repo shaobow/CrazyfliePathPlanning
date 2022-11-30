@@ -105,7 +105,7 @@ class Planner {
         new node(this->robotposeX, this->robotposeY, this->robotposeZ);
   }
 
-  ~Planner();
+  ~Planner() = default;
 
   void setGoalPose(int goal_x, int goal_y, int goal_z) {
     this->goalposeX = goal_x;
@@ -132,7 +132,7 @@ class Planner {
     node* s_current = openList.top();
     while (openList.size() != 0) {
       if (s_current == s_start) {
-        publishPath(s_current);
+        backTrack(s_current);
       }
 
       openList.pop();
@@ -167,8 +167,9 @@ class Planner {
     computePath();
     // publish solution;
   }
-  void backTrack() {
-    auto curr = s_start;
+
+  void backTrack(node* s_current) {
+    auto curr = s_current;
     solution.clear();
     while (curr->get_back_ptr() != nullptr) {
       solution.push_back(curr);
