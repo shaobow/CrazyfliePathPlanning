@@ -34,7 +34,7 @@ class node {
   pair<double, double> key;  // k(s) = [f(s); g*(s)]
 
   // backtracking
-  node* backpointer = NULL;  // backward from GOAL
+  node* backpointer = nullptr;  // backward from GOAL
 
  public:
   node(int x, int y, int z) {
