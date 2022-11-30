@@ -34,7 +34,7 @@ class node {
   pair<double, double> key;  // k(s) = [f(s); g*(s)]
 
   // backtracking
-  node* backpointer = NULL;  // backward from GOAL
+  node* backpointer = nullptr;  // backward from GOAL
 
  public:
   node(int x, int y, int z) {
@@ -53,7 +53,8 @@ class node {
   int getZ() const { return this->z; }
 
   bool operator==(const node& rhs) const {
-    return this->x == rhs.x && this->y == rhs.y && this->z == rhs.z;
+    return this->x == rhs.getX() && this->y == rhs.getY() &&
+           this->z == rhs.getZ();
   }
 
   void set_g_value(double previous_g_value, double edgeCost) {

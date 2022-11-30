@@ -109,9 +109,7 @@ class Planner {
   void computePath() {
     node* s_current = openList.top();
     while (openList.size() != 0) {
-      if (s_current->getX() == s_start->getX() &&
-          s_current->getY() == s_start->getY() &&
-          s_current->getZ() == s_start->getZ()) {
+      if (*s_current == *s_start) {
         cout << "** FOUND PATH **" << endl;
         backTrack(s_current);
         return;
@@ -155,13 +153,14 @@ class Planner {
       solution.push_back(curr);
       curr = curr->get_back_ptr();
     }
-    reverse(solution.begin(), solution.end());
+    solution.push_back(curr);
+    // reverse(solution.begin(), solution.end());
   }
 
   void printPath() {
     int i = 0;
     for (auto node : solution) {
-      cout << "step " << i;
+      cout << "step " << i << ": ";
       cout << "x=" << node->getX() << " "
            << "y=" << node->getY() << " "
            << "z=" << node->getZ() << "\n";
