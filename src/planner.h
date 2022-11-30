@@ -20,6 +20,7 @@ namespace CF_PLAN {
 #define crazyFlie_width 0.10
 #define crazyFlie_length 0.10
 #define crazyFlie_height 0.10
+#define CF_size 0.10
 
 struct compareKey {
   bool operator()(const node* lhs, const node* rhs) {
@@ -123,7 +124,48 @@ class Planner {
            this->robotposeZ == currentPose->getZ();
   }
 
-  // TODO: implemenet A* 
+  // TODO: implemenet A* search
+  void publishPath(node* s_current) {}
+
+  void computePath() {
+    node* s_current = openList.top();
+    while (openList.size() != 0) {
+      if (s_current == s_start) {
+        publishPath(s_current);
+      }
+
+      openList.pop();
+      closedList.insert(s_current);
+
+      for (int dir = 0; dir < NUMOFDIRS; dir++) {
+        int newX = s_current->getX() + dX[dir];
+        int newY = s_current->getY() + dY[dir];
+        int newZ = s_current->getZ() + dZ[dir];
+
+        if (sensor.is_valid(Coord((newX + 0.5) * CF_size,
+                                  (newY + 0.5) * CF_size,
+                                  (newZ + 0.5) * CF_size))) {
+          node* s_pred = new node(newX, newY, newZ);
+          if (s_pred->get_g_value() > (cost[dir] + s_current->get_g_value())) {
+            s_pred->set_g_value(cost[dir] + s_current->get_g_value());
+            s_pred->estimate_h_value(s_start);
+            s_pred->set_f_value();
+            s_pred->set_back_ptr(s_current);
+            openList.push(s_pred);
+          }
+        }
+      }
+
+      s_current = openList.top();
+    }
+  }
+
+  void plan() {
+    s_goal->set_g_value(0);
+    openList.push(s_goal);
+    computePath();
+    // publish solution;
+  }
 
   /*
   // Key -> Operator Overloading Functions
@@ -236,7 +278,6 @@ class Planner {
   }
 
   */
-
 };
 }  // namespace CF_PLAN
 

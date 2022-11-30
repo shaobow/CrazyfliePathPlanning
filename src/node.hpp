@@ -6,6 +6,7 @@
 #include <vector>
 
 #define MAXDOUBLE DBL_MAX
+#define w 1
 
 using namespace std;
 
@@ -60,7 +61,9 @@ class node {
         previous_g_value + edgeCost;  // TODO: g = g' + c or g = rhs' + c?????
   }
 
-  void set_g_value(double value_rhs) { this->g_value = value_rhs; }
+  // void set_g_value(double value_rhs) { this->g_value = value_rhs; }
+
+  void set_g_value(double g_value) { this->g_value = g_value; }
 
   void estimate_h_value(node* n_start) {
     // TODO: times actual distance
@@ -70,7 +73,7 @@ class node {
                                              // this->h_value = 0;
   }
 
-  void set_f_value() { this->f_value = this->g_value + this->h_value; }
+  void set_f_value() { this->f_value = this->g_value + w * this->h_value; }
 
   void set_rhs_value(double rhs_value) { this->rhs_value = rhs_value; }
 
@@ -78,6 +81,8 @@ class node {
     this->key.first = k1;
     this->key.second = k2;
   }
+
+  void set_back_ptr(node* ptr) { this->backpointer = ptr; }
 
   double get_g_value() const { return this->g_value; }
 
