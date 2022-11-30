@@ -53,7 +53,8 @@ class node {
   int getZ() const { return this->z; }
 
   bool operator==(const node& rhs) const {
-    return this->x == rhs.x && this->y == rhs.y && this->z == rhs.z;
+    return this->x == rhs.getX() && this->y == rhs.getY() &&
+           this->z == rhs.getZ();
   }
 
   void set_g_value(double previous_g_value, double edgeCost) {
