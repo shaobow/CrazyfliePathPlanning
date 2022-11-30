@@ -88,4 +88,6 @@ class node {
   double get_f_value() const { return this->f_value; }
 
   pair<double, double> get_key() const { return this->key; }
+
+  node* get_back_ptr() const { return this->backpointer; }
 };

@@ -83,6 +83,7 @@ class Planner {
   unordered_set<node*, PointedObjHash, PointedObjEq> closedList;
   node* s_goal;
   node* s_start;
+  vector<node*> solution;
 
   // D* Lite
   int k_m;
@@ -123,7 +124,17 @@ class Planner {
            this->robotposeZ == currentPose->getZ();
   }
 
-  // TODO: implemenet A* 
+  void backTrack() {
+    auto curr = s_start;
+    solution.clear();
+    while (curr->get_back_ptr() != nullptr) {
+      solution.push_back(curr);
+      curr = curr->get_back_ptr();
+    }
+    reverse(solution.begin(), solution.end());
+  }
+
+  // TODO: implemenet A*
 
   /*
   // Key -> Operator Overloading Functions
@@ -236,7 +247,6 @@ class Planner {
   }
 
   */
-
 };
 }  // namespace CF_PLAN
 
