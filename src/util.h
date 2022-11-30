@@ -3,6 +3,8 @@
 
 /* utility functions and useful typedefines */
 
+#include <btBulletCollisionCommon.h>
+
 #include <array>
 #include <string>
 #include <vector>
@@ -27,11 +29,12 @@ struct Map {
   const Boundary bound;
 };
 
-struct Coord {
-  double x;
-  double y;
-  double z;
-};
+// struct Coord {
+//   double x;
+//   double y;
+//   double z;
+// };
+using Coord = btVector3;
 
 }  // namespace CF_PLAN
 

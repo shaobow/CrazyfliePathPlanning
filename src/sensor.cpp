@@ -31,7 +31,7 @@ Sensor::Sensor() : static_world(MAP_PATH) {
 
 Sensor::~Sensor() {}
 
-bool Sensor::update_collision_world(Coord robot_state) {
+bool Sensor::update_collision_world(const Coord& robot_state) {
   // dummy obstacles for debug tests
 
   // Create two collision objects

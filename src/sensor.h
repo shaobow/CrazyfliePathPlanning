@@ -1,8 +1,6 @@
 #ifndef SENSOR_H__
 #define SENSOR_H__
 
-#include <btBulletCollisionCommon.h>
-
 #include <memory>
 #include <vector>
 
@@ -26,7 +24,7 @@ class Sensor {
 
   // update the collision world by adding newly detected part to the object list
   // as a new collision objects
-  bool update_collision_world(Coord robot_state);
+  bool update_collision_world(const Coord& robot_state);
 };
 
 }  // namespace CF_PLAN
