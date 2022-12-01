@@ -6,7 +6,7 @@
 #include <vector>
 
 #define MAXDOUBLE DBL_MAX
-constexpr double weight = 1.0;
+constexpr double weight = 5.0;
 
 using namespace std;
 

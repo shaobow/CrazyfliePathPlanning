@@ -12,14 +12,14 @@ namespace CF_PLAN {
 class Sensor {
  private:
   // static world
-  // World static_world;
+  World static_world;
 
   // local bullet collision world
-  std::unique_ptr<btCollisionWorld> collision_world;
-  std::unique_ptr<btCollisionDispatcher> collision_dispatcher;
-  std::unique_ptr<btCollisionConfiguration> collision_config;
-  std::unique_ptr<btBroadphaseInterface> collision_broadphase;
-  std::vector<std::unique_ptr<btCollisionObject>> collision_objects_list;
+  // std::unique_ptr<btCollisionWorld> collision_world;
+  // std::unique_ptr<btCollisionDispatcher> collision_dispatcher;
+  // std::unique_ptr<btCollisionConfiguration> collision_config;
+  // std::unique_ptr<btBroadphaseInterface> collision_broadphase;
+  btCollisionWorld* collision_world;
 
   // robot object in static world
   std::unique_ptr<btCollisionObject> robot_obj;
