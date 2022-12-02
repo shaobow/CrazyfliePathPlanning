@@ -10,7 +10,6 @@ add_subdirectory(BulletCollision)
 add_subdirectory(LinearMath)
 
 SET(Planning_SRCS
-    planner.cpp
     sensor.cpp
     world.cpp
     btBulletCollisionAll.cpp

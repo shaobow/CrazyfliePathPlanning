@@ -36,6 +36,8 @@ struct Map {
 // };
 using Coord = btVector3;
 
+using Idx = int;
+
 }  // namespace CF_PLAN
 
 #endif

@@ -4,7 +4,9 @@
 #include <math.h>
 
 #include <algorithm>
+#include <chrono>
 #include <iostream>
+#include <map>
 #include <queue>
 #include <unordered_set>
 #include <utility>
@@ -20,32 +22,14 @@ namespace CF_PLAN {
 #define crazyFlie_width 0.10
 #define crazyFlie_length 0.10
 #define crazyFlie_height 0.10
+#define CF_size 0.10
 
-struct compareKey {
-  bool operator()(const node* lhs, const node* rhs) {
-    pair<double, double> key1 = lhs->get_key();
-    pair<double, double> key2 = rhs->get_key();
-
-    if (key1.first > key2.first)
-      return true;  // ordering in smallest key_1 value
-    else if (key1.first == key2.first && key1.second > key2.second)
-      return true;
-    return false;
-  }
-};
-
-struct PointedObjHash {
-  size_t operator()(node* const& n) const {
-    size_t hx = std::hash<int>{}(n->getX());
-    size_t hy = std::hash<int>{}(n->getY()) << 1;
-    size_t hz = std::hash<int>{}(n->getZ()) << 2;
+struct arrayHash {
+  size_t operator()(const array<int, 3>& arr) const {
+    size_t hx = std::hash<int>{}(arr[0]);
+    size_t hy = std::hash<int>{}(arr[1]) << 1;
+    size_t hz = std::hash<int>{}(arr[2]) << 2;
     return (hx ^ hy) ^ hz;
-  }
-};
-
-struct PointedObjEq {
-  bool operator()(node* const& lhs, node* const& rhs) const {
-    return lhs == rhs && lhs->get_key() == rhs->get_key();
   }
 };
 
@@ -73,13 +57,15 @@ class Planner {
   int robotposeZ;
 
   // A* search
-  priority_queue<node*, vector<node*>, compareKey> openList;
-  unordered_set<node*, PointedObjHash, PointedObjEq> closedList;
+  unordered_map<array<int, 3>, int, arrayHash>
+      umap;  // use coord. to find idx of ptr address
+
+  vector<unique_ptr<node>> node_list;
   node* s_goal;
   node* s_start;
-
-  // D* Lite
-  int k_m;
+  Idx start_idx;
+  Idx goal_idx;
+  vector<node*> solution;
 
   // sensor for local map update
   Sensor sensor;
@@ -87,17 +73,28 @@ class Planner {
   // check if successor state is valid
   bool isValid(const Coord& robot_state);
 
+  int add_node(int x, int y, int z) {
+    auto temp = make_unique<node>(x, y, z);
+    node_list.push_back(move(temp));
+    return node_list.size() - 1;
+  }
+
  public:
   Planner(int robot_x, int robot_y, int robot_z, int goal_x, int goal_y,
           int goal_z) {
     this->updateRobotPose(robot_x, robot_y, robot_z);
     this->setGoalPose(goal_x, goal_y, goal_z);
-    this->s_goal = new node(this->goalposeX, this->goalposeY, this->goalposeZ);
-    this->s_start =
-        new node(this->robotposeX, this->robotposeY, this->robotposeZ);
+
+    goal_idx = add_node(goal_x, goal_y, goal_z);
+    s_goal = node_list[goal_idx].get();
+    umap[{goal_x, goal_y, goal_z}] = goal_idx;
+
+    start_idx = add_node(this->robotposeX, this->robotposeY, this->robotposeZ);
+    s_start = node_list[start_idx].get();
+    umap[{robotposeX, robotposeY, robotposeZ}] = start_idx;
   }
 
-  ~Planner();
+  ~Planner() = default;
 
   void setGoalPose(int goal_x, int goal_y, int goal_z) {
     this->goalposeX = goal_x;
@@ -117,110 +114,92 @@ class Planner {
            this->robotposeZ == currentPose->getZ();
   }
 
-  // Key -> Operator Overloading Functions
-  bool ifSmallerKeys(pair<double, double>& lhs, pair<double, double>& rhs) {
-    if (lhs.first < rhs.first)
-      return true;
-    else if (lhs.first == rhs.first && lhs.second < rhs.second)
-      return true;
-    return false;
-  }
+  void computePath() {
+    auto compr = [this](const Idx& lhs, const Idx& rhs) {
+      auto h1 = node_list[lhs]->get_h_value();
+      auto h2 = node_list[rhs]->get_h_value();
+      auto v1 = node_list[lhs]->get_f_value();
+      auto v2 = node_list[rhs]->get_f_value();
 
-  /* For checking priority_quete auto-update after key values are changed */
-  bool ifEqualKeys(pair<double, double>& lhs, pair<double, double>& rhs) {
-    return lhs.first == rhs.first && lhs.second == rhs.second;
-  }
-
-  // Priority_queue Utility Functions
-  iterator find(priority_queue<node*, vector<node*>, compareKey>& U, node* u) {
-    auto first = U.first();
-    auto last = U.end();
-    while (first != last) {
-      if (**first == *u) return first;
-      ++first;
-    }
-    return last;
-  }
-
-  // TODO: implement D* Lite
-  pair<int, int> calculateKey(node* s) {
-    s->estimate_h_value(this->s_start);
-    int min_g_rhs =
-        min(s->get_g_value(), s->get_rhs_value());  // min(g(s), rhs(s))
-    s->set_key(min_g_rhs + s->get_h_value() + this->k_m,
-               min_g_rhs);  // [min(g(s), rhs(s)) + h(s_start, s) + k_m;
-                            // min(g(s), rhs(s))]
-    return s->get_key();
-  }
-
-  void initialize() {
-    // U = zero;
-    this->k_m = 0;
-    // for all s within S, rhs(s) = g(s) = inf.
-    this->s_goal->set_rhs_value(0);  // rhs(s_goal) = 0 but g(s_goal) = inf.
-    this->calculateKey(this->s_goal);
-    this->openList.push(this->s_goal);
-  }
-
-  void updateVertex(node* u) {
-    if (u->get_g_value() != u->get_rhs_value()) {
-      if (this->find(this->openList, u) !=
-          this->openList.end()) {  // u within U
-
-      } else {  // u NOT in U
+      // smallest f value on the top
+      if (v1 > v2) return true;
+      // break tie with heuristic
+      if (v1 == v2) {
+        if (h1 > h2) return true;
       }
-    }
-    if (this->find(this->openList, u) != this->openList.end()) {  // u within U
-    }
-  }
+      return false;
+    };
 
-  void computeShortestPath() {
-    pair<double, double> key_s_start = this->calculateKey(this->s_start);
+    priority_queue<Idx, vector<Idx>, decltype(compr)> openList(compr);
 
-    while (this->ifSmallerKeys(this->openList.top()->get_key(), key_s_start) ||
-           this->s_start->get_rhs_value() > this->s_start->get_g_value()) {
-      node* u = this->openList.top();
-      pair<double, double> k_old = u->get_key();
-      pair<double, double> k_new = this->calculateKey(u);
+    openList.push(goal_idx);
 
-      if (this->ifSmallerKeys(k_old, k_new)) {
-        // U.Update(u, k_new)
-        if (this->ifEqualKeys(this->openList.top()->get_key(), k_new)) {
-          cout << "** [Notes] priority_queue auto-updates key_values. **"
-               << endl;
-        } else {
-          cout << "** [Notes] priority_queue DOES NOT auto-updates key_values. "
-                  "**"
-               << endl;
-          this->openList.pop();
-          this->openList.push(u);
-        }
-      } else if (u->get_g_value() > u->get_rhs_value()) {
-        u->set_g_value(u->get_rhs_value());
-        this->openList.pop();  // U.Remove(u)
+    node* s_current = node_list[openList.top()].get();
+    while (openList.size() != 0) {
+      if (*s_current == *s_start) {
+        cout << "** FOUND PATH **" << endl;
+        backTrack(s_current);
+        return;
+      }
 
-        // for all s wihtin Pred(u)
-        for (int dir = 0; dir < NUMOFDIRS; dir++) {
-          node* s =
-              new node(u->getX() + this->dX[dir], u->getY() + this->dY[dir],
-                       u->getZ() + this->dZ[dir]);
-          if (!(s == s_goal)) {
-            int rhs_value_new = std::min(s->get_rhs_value(),
-                                         this->cost[dir] + u->get_g_value());
-            s->set_rhs_value(rhs_value_new);
+      openList.pop();
+
+      for (int dir = 0; dir < NUMOFDIRS; dir++) {
+        int newX = s_current->getX() + dX[dir];
+        int newY = s_current->getY() + dY[dir];
+        int newZ = s_current->getZ() + dZ[dir];
+
+        if (sensor.is_valid(Coord((btScalar)(newX + 0.5) * CF_size,
+                                  (btScalar)(newY + 0.5) * CF_size,
+                                  (btScalar)(newZ + 0.5) * CF_size))) {
+          // get unique node*
+          Idx new_idx;
+          if (umap.count({newX, newY, newZ}) == 0) {
+            new_idx = add_node(newX, newY, newZ);
+            umap[{newX, newY, newZ}] = new_idx;
+          } else {
+            new_idx = umap[{newX, newY, newZ}];
           }
-          this->updateVertex(s);
+          node* s_pred = node_list[new_idx].get();
+
+          if (s_pred->get_g_value() > (cost[dir] + s_current->get_g_value())) {
+            s_pred->set_g_value(cost[dir] + s_current->get_g_value());
+            s_pred->estimate_h_value(s_start);
+            s_pred->set_f_value();
+            s_pred->set_back_ptr(s_current);
+            openList.push(new_idx);
+          }
         }
       }
+
+      s_current = node_list[openList.top()].get();
+      // s_current->print_node();
     }
   }
 
-  void main() {
-    node* s_last = this->s_start;  // s_last = s_start
-    this->initialize();
-    this->computeShortestPath();
-    while (!(this->s_start == this->s_goal)) {
-      // TODO: implement rest of D* Lite
+  void plan() {
+    s_goal->set_g_value(0);
+    computePath();
+  }
+
+  void backTrack(node* s_current) {
+    auto curr = s_current;
+    solution.clear();
+    while (curr->get_back_ptr() != nullptr) {
+      solution.push_back(curr);
+      curr = curr->get_back_ptr();
+    }
+    solution.push_back(curr);
+  }
+
+  void printPath() {
+    int i = 0;
+    for (auto node : solution) {
+      cout << "step " << i << ": ";
+      cout << "x=" << node->getX() << " "
+           << "y=" << node->getY() << " "
+           << "z=" << node->getZ() << "\n";
+      i++;
     }
   }
 };
