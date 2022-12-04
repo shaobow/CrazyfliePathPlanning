@@ -1,5 +1,5 @@
-#ifndef PLANNER_H__
-#define PLANNER_H__
+#ifndef PLANNERDSTAR_H__
+#define PLANNERDSTAR_H__
 
 #include <math.h>
 
@@ -11,7 +11,7 @@
 #include <unordered_set>
 #include <utility>
 
-#include "node.hpp"
+#include "nodeDstar.hpp"
 #include "sensor.h"
 #include "util.h"
 
@@ -28,7 +28,7 @@ struct arrayHash {
   }
 };
 
-class Planner {
+class PlannerDstar {
  private:
   // goal info
   int goalposeX;
@@ -44,42 +44,46 @@ class Planner {
   unordered_map<array<int, 3>, int, arrayHash>
       umap;  // use coord. to find idx of ptr address
 
-  vector<unique_ptr<node>> node_list;
-  node* s_goal;
-  node* s_start;
-  Idx start_idx;
-  Idx goal_idx;
-  vector<node*> solution;
+  vector<unique_ptr<nodeDstar>> node_list;
+  nodeDstar* s_goal;
+  nodeDstar* s_start;
+  Idx idx_start;
+  Idx idx_goal;
+  vector<nodeDstar*> solution;
   vector<vector<int>> solution_grid;
+
+  Idx idx_last;
+  double km = 0.0;
 
   // sensor for local map update
   Sensor sensor;
 
   // check if successor state is valid
   bool isValid(const Coord& robot_state);
+  bool isUpdate(const Coord& robot_state);
 
   int add_node(int x, int y, int z) {
-    auto temp = make_unique<node>(x, y, z);
+    auto temp = make_unique<nodeDstar>(x, y, z);
     node_list.push_back(move(temp));
     return node_list.size() - 1;
   }
 
  public:
-  Planner(int robot_x, int robot_y, int robot_z, int goal_x, int goal_y,
-          int goal_z) {
+  PlannerDstar(int robot_x, int robot_y, int robot_z, int goal_x, int goal_y,
+               int goal_z) {
     this->updateRobotPose(robot_x, robot_y, robot_z);
     this->setGoalPose(goal_x, goal_y, goal_z);
 
-    goal_idx = add_node(goal_x, goal_y, goal_z);
-    s_goal = node_list[goal_idx].get();
-    umap[{goal_x, goal_y, goal_z}] = goal_idx;
+    idx_goal = add_node(goal_x, goal_y, goal_z);
+    s_goal = node_list[idx_goal].get();
+    umap[{goal_x, goal_y, goal_z}] = idx_goal;
 
-    start_idx = add_node(this->robotposeX, this->robotposeY, this->robotposeZ);
-    s_start = node_list[start_idx].get();
-    umap[{robotposeX, robotposeY, robotposeZ}] = start_idx;
+    idx_start = add_node(this->robotposeX, this->robotposeY, this->robotposeZ);
+    s_start = node_list[idx_start].get();
+    umap[{robotposeX, robotposeY, robotposeZ}] = idx_start;
   }
 
-  ~Planner() = default;
+  ~PlannerDstar() = default;
 
   void setGoalPose(int goal_x, int goal_y, int goal_z) {
     this->goalposeX = goal_x;
@@ -93,33 +97,55 @@ class Planner {
     this->robotposeZ = robot_z;
   }
 
-  int ifReachStart(node* currentPose) {
-    return this->robotposeX == currentPose->getX() &&
-           this->robotposeY == currentPose->getY() &&
-           this->robotposeZ == currentPose->getZ();
+  // int ifReachStart(nodeDstar* currentPose) {
+  //   return this->robotposeX == currentPose->getX() &&
+  //          this->robotposeY == currentPose->getY() &&
+  //          this->robotposeZ == currentPose->getZ();
+  // }
+
+  // D* Lite Utility Functions
+  bool ifSmallerKey(const pair<double, double>& lhs,
+                    const pair<double, double>& rhs) {
+    if (lhs.first < rhs.first) return true;
+    if (lhs.first == rhs.first && lhs.second < rhs.second) return true;
+    return false;
+  }
+
+  bool ifEqualKey(const pair<double, double>& lhs,
+                  const pair<double, double>& rhs) {
+    return lhs.first == rhs.first && lhs.second == rhs.second;
+  }
+
+  // TODO: implement D* Lite
+  pair<double, double> calculateKey(const Idx& idx_s) {
+    auto s = node_list[idx_s].get();
+    int min_g_and_rhs = std::min(s->get_g_value(), s->get_rhs_value());
+    s->set_key(min_g_and_rhs + s->estimate_h_value(s_start) + km,
+               min_g_and_rhs);
+    return s->get_key();
   }
 
   void computePath() {
     auto compr = [this](const Idx& lhs, const Idx& rhs) {
-      auto h1 = node_list[lhs]->get_h_value();
-      auto h2 = node_list[rhs]->get_h_value();
-      auto v1 = node_list[lhs]->get_f_value();
-      auto v2 = node_list[rhs]->get_f_value();
+      auto k1 = node_list[lhs]->get_key();
+      auto k2 = node_list[rhs]->get_key();
 
-      // smallest f value on the top
-      if (v1 > v2) return true;
-      // break tie with heuristic
-      if (v1 == v2) {
-        if (h1 > h2) return true;
-      }
+      if (k1.first > k2.first) return true;
+      if (k1.first == k2.first && k1.second > k2.second) return true;
       return false;
     };
 
+    // initialize()
+    Idx idx_last = idx_start;
     priority_queue<Idx, vector<Idx>, decltype(compr)> openList(compr);
+    s_goal->set_rhs_value(0);
+    calculateKey(idx_goal);
+    openList.push(idx_goal);
 
-    openList.push(goal_idx);
+    // computeShortestPath()
+    nodeDstar* s_current = node_list[openList.top()].get();
+    pair<double, double> k_old = s_current->get_key();
 
-    node* s_current = node_list[openList.top()].get();
     while (openList.size() != 0) {
       if (*s_current == *s_start) {
         cout << "** FOUND PATH **" << endl;
@@ -145,7 +171,7 @@ class Planner {
           } else {
             new_idx = umap[{newX, newY, newZ}];
           }
-          node* s_pred = node_list[new_idx].get();
+          nodeDstar* s_pred = node_list[new_idx].get();
 
           if (s_pred->get_g_value() > (cost[dir] + s_current->get_g_value())) {
             s_pred->set_g_value(cost[dir] + s_current->get_g_value());
@@ -162,12 +188,7 @@ class Planner {
     }
   }
 
-  void plan() {
-    s_goal->set_g_value(0);
-    computePath();
-  }
-
-  void backTrack(node* s_current) {
+  void backTrack(nodeDstar* s_current) {
     auto curr = s_current;
     solution.clear();
 
@@ -184,17 +205,6 @@ class Planner {
 
     vector<int> xyz{curr->getX(), curr->getY(), curr->getZ()};
     solution_grid.push_back(xyz);
-  }
-
-  void printPath() {
-    int i = 0;
-    for (auto node : solution) {
-      cout << "step " << i << ": ";
-      cout << "x=" << node->getX() << " "
-           << "y=" << node->getY() << " "
-           << "z=" << node->getZ() << "\n";
-      i++;
-    }
   }
 
   vector<vector<int>> getPath() { return this->solution_grid; }

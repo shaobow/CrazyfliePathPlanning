@@ -13,6 +13,20 @@ namespace CF_PLAN {
 
 constexpr size_t BOUND_CORNER_SIZE = 6;
 
+const int CF_size = 0.10;
+const int NUMOFDIRS = 26;
+
+// 26-connected grid
+const int dX[NUMOFDIRS] = {0,  0,  1, 0, 1,  1,  1, -1, 0,  0, -1, -1, 0,
+                           -1, -1, 1, 1, -1, -1, 1, -1, -1, 0, 0,  1,  1};
+const int dY[NUMOFDIRS] = {0,  1, 0,  1, 0,  1, 1,  0, -1, 0,  -1, 0,  -1,
+                           -1, 1, -1, 1, -1, 1, -1, 0, 1,  -1, 1,  -1, 0};
+const int dZ[NUMOFDIRS] = {1,  0, 0, 1,  1, 0,  1,  0, 0, -1, 0,  -1, -1,
+                           -1, 1, 1, -1, 1, -1, -1, 1, 0, 1,  -1, 0,  -1};
+const double cost[NUMOFDIRS] = {
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};  // TODO: evaluate actual edge cost
+
 struct Vertex {
   double x;
   double y;
