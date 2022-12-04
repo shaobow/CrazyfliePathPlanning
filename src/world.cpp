@@ -93,4 +93,11 @@ void World::load_world(const std::string& file_path) {
 }
 
 Boundary World::get_bound() const { return world_bound; }
+
+bool World::is_ocp(Coord coord) const {
+  if (ocp_LUT.count(coord) > 0) {
+    return true;
+  }
+  return false;
+}
 }  // namespace CF_PLAN

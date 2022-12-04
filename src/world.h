@@ -33,6 +33,8 @@ class World {
 
   // get boundary
   Boundary get_bound() const;
+
+  bool is_ocp(Coord coord) const;
 };
 
 }  // namespace CF_PLAN

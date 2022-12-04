@@ -52,14 +52,14 @@ auto range2coord = [](const double& lhs, const double& rhs) {
   int lhs_idx, rhs_idx;
   // left close right open interval
   if (lhs > 0) {
-    lhs_idx = floor((lhs) / GRID_SIZE);
+    lhs_idx = (int)((lhs - GRID_SIZE / 2) / GRID_SIZE);
   } else {
-    lhs_idx = ceil((lhs) / GRID_SIZE);
+    lhs_idx = (int)((lhs - GRID_SIZE / 2) / GRID_SIZE);
   }
   if (rhs > 0) {
-    rhs_idx = floor((rhs) / GRID_SIZE);
+    rhs_idx = (int)((rhs + GRID_SIZE / 2) / GRID_SIZE);
   } else {
-    rhs_idx = ceil((rhs) / GRID_SIZE);
+    rhs_idx = (int)((rhs + GRID_SIZE / 2) / GRID_SIZE);
   }
 
   return std::pair<int, int>(lhs_idx, rhs_idx);

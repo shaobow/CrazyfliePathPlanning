@@ -2,6 +2,7 @@
 
 // #include "planner.h"
 #include "util.h"
+#include "world.h"
 
 int main(int, char**) {
   int robot_x = 0, robot_y = -49, robot_z = 2;
@@ -15,10 +16,6 @@ int main(int, char**) {
   // start); astar.printPath(); std::cout << "Planner takes " <<
   // solve_time.count() / 1000.0
   //           << " seconds to find solution.\n";
-  auto res = CF_PLAN::range2coord(0, 1);
-  std::cout << "start from " << res.first << " end by " << res.second - 1
-            << "\n";
-  res = CF_PLAN::range2coord(-1, 0);
-  std::cout << "start from " << res.first << " end by " << res.second - 1
-            << "\n";
+  auto res = CF_PLAN::range2coord(-0.05, 0.05);
+  std::cout << "start from " << res.first << " end by " << res.second << "\n";
 }
