@@ -13,32 +13,21 @@ World::World(const std::string& file_path) {
   // load map
   load_world(file_path);
 
-  // init local collision world
-  btVector3 worldAabbMin(world_bound[0], world_bound[1], world_bound[3]);
-  btVector3 worldAabbMax(world_bound[4], world_bound[5], world_bound[6]);
-
-  collision_config = std::make_unique<btDefaultCollisionConfiguration>();
-  collision_dispatcher =
-      std::make_unique<btCollisionDispatcher>(collision_config.get());
-  collision_broadphase = std::make_unique<bt32BitAxisSweep3>(
-      worldAabbMin, worldAabbMax, 5000, (btOverlappingPairCache*)0, true);
-  static_world = std::make_unique<btCollisionWorld>(collision_dispatcher.get(),
-                                                    collision_broadphase.get(),
-                                                    collision_config.get());
-
-  // add obstacles
+  // create obstacle map
   for (const auto& block : block_info) {
-    // Create two collision objects
-    btCollisionObject* box = new btCollisionObject();
-    // Move each to a specific location
-    box->getWorldTransform().setOrigin(
-        btVector3((btScalar)block[0], (btScalar)block[1], (btScalar)block[2]));
-    btBoxShape* box_shape =
-        new btBoxShape(btVector3(block[3], block[4], block[5]));
-    // Set the shape of each collision object
-    box->setCollisionShape(box_shape);
-    // Add the collision objects to our collision world
-    static_world->addCollisionObject(box, 2, 1);
+    std::vector<double> state_min = {block[0], block[1], block[3]};
+    std::vector<double> state_max = {block[4], block[5], block[6]};
+    auto x_coord_range = range2coord(state_min[0], state_max[0]);
+    auto y_coord_range = range2coord(state_min[1], state_max[1]);
+    auto z_coord_range = range2coord(state_min[2], state_max[2]);
+    for (int i = x_coord_range.first; i < x_coord_range.second; i++) {
+      for (int j = y_coord_range.first; j < y_coord_range.second; j++) {
+        for (int k = z_coord_range.first; k < z_coord_range.second; k++) {
+          Coord curr_idx(i, j, k);
+          ocp_LUT.insert(curr_idx);
+        }
+      }
+    }
   }
 }
 
@@ -104,46 +93,4 @@ void World::load_world(const std::string& file_path) {
 }
 
 Boundary World::get_bound() const { return world_bound; }
-
-std::vector<std::unique_ptr<btCollisionObject>> World::get_newly_detected(
-    const Coord& robot_state) {
-  std::vector<std::unique_ptr<btCollisionObject>> obj_list;
-
-  // update robot location
-  btTransform btTrans;
-  btTrans.setIdentity();
-  btTrans.setOrigin(
-      btVector3(robot_state.getX(), robot_state.getY(), robot_state.getZ()));
-  static_robot->setWorldTransform(btTrans);
-
-  // TODO: create partial obstacle from virtual range contact info
-  // Perform collision detection
-  static_world->performDiscreteCollisionDetection();
-
-  int numManifolds = static_world->getDispatcher()->getNumManifolds();
-  // For each contact manifold
-  for (int i = 0; i < numManifolds; i++) {
-    btPersistentManifold* contactManifold =
-        static_world->getDispatcher()->getManifoldByIndexInternal(i);
-    const btCollisionObject* obA =
-        static_cast<const btCollisionObject*>(contactManifold->getBody0());
-    const btCollisionObject* obB =
-        static_cast<const btCollisionObject*>(contactManifold->getBody1());
-    contactManifold->refreshContactPoints(obA->getWorldTransform(),
-                                          obB->getWorldTransform());
-    int numContacts = contactManifold->getNumContacts();
-    // For each contact point in that manifold
-    for (int j = 0; j < numContacts; j++) {
-      // Get the contact information
-      btManifoldPoint& pt = contactManifold->getContactPoint(j);
-      btVector3 ptA = pt.getPositionWorldOnA();
-      btVector3 ptB = pt.getPositionWorldOnB();
-      double ptdist = pt.getDistance();
-    }
-  }
-
-  return obj_list;
-}
-
-btCollisionWorld* World::get_static_world() const { return static_world.get(); }
 }  // namespace CF_PLAN

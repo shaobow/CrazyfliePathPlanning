@@ -94,8 +94,6 @@ class Planner {
     umap[{robotposeX, robotposeY, robotposeZ}] = start_idx;
   }
 
-  ~Planner() = default;
-
   void setGoalPose(int goal_x, int goal_y, int goal_z) {
     this->goalposeX = goal_x;
     this->goalposeY = goal_y;
