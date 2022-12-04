@@ -11,7 +11,9 @@ int main(int, char**) {
   astar.plan();
   auto stop = chrono::high_resolution_clock::now();
   auto solve_time = chrono::duration_cast<chrono::milliseconds>(stop - start);
-  astar.printPath();
+  // astar.printPath();
+  astar.printPath_grid();
+  vector<vector<int>> solution = astar.getPath();
   std::cout << "Planner takes " << solve_time.count() / 1000.0
             << " seconds to find solution.\n";
 }
