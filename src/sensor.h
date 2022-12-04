@@ -11,18 +11,14 @@ namespace CF_PLAN {
 
 class Sensor {
  private:
-  // static world
+  // World class
   World static_world;
+  // Partially known map occupancy LUT
+  std::unordered_set<Coord, coordHash> partial_map;
+  
+  // Sensor range in direction
+  int range = 1;
 
-  // local bullet collision world
-  // std::unique_ptr<btCollisionWorld> collision_world;
-  // std::unique_ptr<btCollisionDispatcher> collision_dispatcher;
-  // std::unique_ptr<btCollisionConfiguration> collision_config;
-  // std::unique_ptr<btBroadphaseInterface> collision_broadphase;
-  btCollisionWorld* collision_world;
-
-  // robot object in static world
-  std::unique_ptr<btCollisionObject> robot_obj;
 
  public:
   Sensor();
