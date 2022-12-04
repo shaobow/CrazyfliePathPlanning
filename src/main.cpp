@@ -16,6 +16,9 @@ int main(int, char**) {
   // start); astar.printPath(); std::cout << "Planner takes " <<
   // solve_time.count() / 1000.0
   //           << " seconds to find solution.\n";
-  auto res = CF_PLAN::range2coord(-0.05, 0.05);
-  std::cout << "start from " << res.first << " end by " << res.second << "\n";
+  std::string MAP_PATH = "./maps/map1.txt";
+  CF_PLAN::World static_world(MAP_PATH);
+  auto res = static_world.convert_point(0., 0., 0.);
+  std::cout << "x_idx = " << res.x << ", y_idx = " << res.y
+            << ", z_idx = " << res.z << "\n";
 }

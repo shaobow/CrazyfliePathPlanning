@@ -9,14 +9,14 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 SET(Planning_SRCS
     #sensor.cpp
-    #world.cpp
+    world.cpp
     main.cpp
 )
 
 SET(Planning_HDRS
     #planner.h
     #sensor.h
-    #world.h
+    world.h
     util.h
 )
 

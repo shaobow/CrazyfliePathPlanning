@@ -17,6 +17,7 @@ class World {
  private:
   // boundary of the satic world
   Boundary world_bound;
+  Coord world_size;
   // blocks info
   std::vector<std::vector<double>> block_info;
   // grid occupancy LUT
@@ -29,12 +30,13 @@ class World {
 
  public:
   World(const std::string& file_path);
-  ~World();
 
   // get boundary
   Boundary get_bound() const;
 
   bool is_ocp(Coord coord) const;
+
+  Coord convert_point(const double& x, const double& y, const double& z);
 };
 
 }  // namespace CF_PLAN

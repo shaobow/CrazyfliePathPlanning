@@ -33,7 +33,11 @@ struct Coord {
   int x;
   int y;
   int z;
+  Coord() : x(0), y(0), z(0) {}
   Coord(int q1, int q2, int q3) : x(q1), y(q2), z(q3) {}
+  bool operator==(const Coord& rhs) const {
+    return (this->x == rhs.x && this->y == rhs.y && this->z == rhs.z);
+  }
 };
 
 struct coordHash {
