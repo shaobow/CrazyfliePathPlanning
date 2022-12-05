@@ -1,6 +1,6 @@
-mkdir build
-mkdir bin
+mkdir -p build
+mkdir -p bin
 cd build
 cmake ../src
-cmake --build 
-cmake --build . --config Release
+cmake --build . 
+cmake --install .

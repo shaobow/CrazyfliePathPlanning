@@ -69,28 +69,6 @@ vector<vector<double>> plan(int map_id) {
   auto solution = astar.getPath();
   std::cout << "Planner takes " << solve_time.count() / 1000.0
             << " seconds to find solution.\n";
-
-  // std::string MAP_PATH = "./maps/map1.txt";
-  // auto start = std::chrono::high_resolution_clock::now();
-  // CF_PLAN::Sensor sensor;
-  // auto stop = std::chrono::high_resolution_clock::now();
-  // auto sensor_construct_time =
-  //     std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
-  // std::cout << "Sensor class takes " << sensor_construct_time.count() /
-  // 1000.0
-  //           << " seconds to construct.\n";
-  // auto test_point_1 = sensor.concert_point(0, 0, 0);
-  // if (sensor.is_valid(test_point_1)) {
-  //   std::cout << "pt1 true\n";
-  // } else {
-  //   std::cout << "pt1 false\n";
-  // }
-  // auto test_point_2 = sensor.concert_point(2, 2, 0);
-  // if (sensor.is_valid(test_point_2)) {
-  //   std::cout << "pt2 true\n";
-  // } else {
-  //   std::cout << "pt2 false\n";
-  // }
   return solution;
 }
 
