@@ -62,8 +62,7 @@ class Planner {
   node* s_start;
   Idx start_idx;
   Idx goal_idx;
-  vector<node*> solution;
-  vector<vector<int>> solution_grid;
+  vector<vector<double>> solution;
 
   // sensor for local map update
   Sensor sensor;
@@ -183,47 +182,25 @@ class Planner {
     auto curr = s_current;
     solution.clear();
 
-    solution_grid.clear();
-
     while (curr->get_back_ptr() != nullptr) {
-      solution.push_back(curr);
       curr = curr->get_back_ptr();
 
-      vector<int> xyz{curr->getX(), curr->getY(), curr->getZ()};
-      solution_grid.push_back(xyz);
+      Coord xyz_idx(curr->getX(), curr->getY(), curr->getZ());
+      solution.push_back(sensor.convert_idx(xyz_idx));
     }
-    solution.push_back(curr);
 
-    vector<int> xyz{curr->getX(), curr->getY(), curr->getZ()};
-    solution_grid.push_back(xyz);
+    Coord xyz_idx(curr->getX(), curr->getY(), curr->getZ());
+    solution.push_back(sensor.convert_idx(xyz_idx));
   }
 
   void printPath() {
     int i = 0;
-    for (auto node : solution) {
-      // cout << "step " << i << ": ";
-      // cout << "x=" << node->getX() << " "
-      //      << "y=" << node->getY() << " "
-      //      << "z=" << node->getZ() << "\n";
-      // i++;
-      auto pt =
-          sensor.convert_idx(Coord(node->getX(), node->getY(), node->getZ()));
+    for (auto pt : solution) {
       cout << pt[0] << "," << pt[1] << "," << pt[2] << "\n";
     }
   }
 
-  vector<vector<int>> getPath() { return this->solution_grid; }
-
-  void printPath_grid() {
-    int i = 0;
-    for (auto xyz : solution_grid) {
-      cout << "step " << i << ": ";
-      cout << "x=" << xyz[0] << " "
-           << "y=" << xyz[1] << " "
-           << "z=" << xyz[2] << "\n";
-      i++;
-    }
-  }
+  vector<vector<double>> getPath() { return this->solution; }
 };
 }  // namespace CF_PLAN
 

@@ -1,10 +1,19 @@
+#include <mex.h>
+
 #include <iostream>
 
 #include "chrono"
+#include "matrix.h"
 #include "planner.h"
 #include "sensor.h"
 #include "util.h"
 #include "world.h"
+
+/* Input Arguments */
+#define IN prhs[0]
+
+/* Output Arguments */
+#define PATH plhs[0]
 
 namespace {
 const std::string MAP1_PATH = "./maps/map1.txt";
@@ -12,14 +21,12 @@ const std::string MAP2_PATH = "./maps/map2.txt";
 const std::string MAP3_PATH = "./maps/map3.txt";
 }  // namespace
 
-constexpr int MAP_ID = 1;
-
-int main() {
+vector<vector<double>> plan(int map_id) {
   std::string map_path;
   double robot_x, robot_y, robot_z;
   double goal_x, goal_y, goal_z;
 
-  switch (MAP_ID) {
+  switch (map_id) {
     case 1:
       map_path = MAP1_PATH;
       robot_x = 0.0;
@@ -58,9 +65,8 @@ int main() {
   astar.plan();
   stop = chrono::high_resolution_clock::now();
   auto solve_time = chrono::duration_cast<chrono::milliseconds>(stop - start);
-  // astar.printPath();
-  astar.printPath_grid();
-  vector<vector<int>> solution = astar.getPath();
+  astar.printPath();
+  auto solution = astar.getPath();
   std::cout << "Planner takes " << solve_time.count() / 1000.0
             << " seconds to find solution.\n";
 
@@ -85,5 +91,32 @@ int main() {
   // } else {
   //   std::cout << "pt2 false\n";
   // }
-  return 0;
+  return solution;
+}
+
+/* MEX entry function */
+void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
+  /* argument check */
+  if (nrhs != 1) {
+    mexErrMsgIdAndTxt("MATLAB:cudaAdd:inputmismatch",
+                      "Input arguments must be 1!");
+  }
+  if (nlhs != 1) {
+    mexErrMsgIdAndTxt("MATLAB:cudaAdd:outputmismatch",
+                      "Output arguments must be 1!");
+  }
+
+  auto solution = plan(1);
+  mwSize m = solution.size();
+  mwSize n = 3;
+  PATH = mxCreateDoubleMatrix(m, n, mxREAL);
+  double *path_ptr = mxGetPr(PATH);
+
+  for (int i = 0; i < m; i++) {
+    for (int j = 0; j < n; j++) {
+      path_ptr[i * n + j] = solution[i][j];
+    }
+  }
+
+  return;
 }
