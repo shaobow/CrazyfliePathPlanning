@@ -36,7 +36,10 @@ class World {
 
   bool is_ocp(Coord coord) const;
 
+  Coord get_world_size() const;
+
   Coord convert_point(const double& x, const double& y, const double& z);
+  std::vector<double> convert_idx(const Coord& idx);
 };
 
 }  // namespace CF_PLAN

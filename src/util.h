@@ -11,7 +11,7 @@
 namespace CF_PLAN {
 
 constexpr size_t BOUND_SIZE = 6;
-constexpr double GRID_SIZE = 0.1;  // 10 cm grid size
+constexpr double GRID_SIZE = 0.25;  // 25 cm grid size
 
 struct Vertex {
   double x;
@@ -50,24 +50,6 @@ struct coordHash {
 };
 
 using Idx = int;
-
-// lhs is the smaller bound
-auto range2coord = [](const double& lhs, const double& rhs) {
-  int lhs_idx, rhs_idx;
-  // left close right open interval
-  if (lhs > 0) {
-    lhs_idx = (int)((lhs - GRID_SIZE / 2) / GRID_SIZE);
-  } else {
-    lhs_idx = (int)((lhs - GRID_SIZE / 2) / GRID_SIZE);
-  }
-  if (rhs > 0) {
-    rhs_idx = (int)((rhs + GRID_SIZE / 2) / GRID_SIZE);
-  } else {
-    rhs_idx = (int)((rhs + GRID_SIZE / 2) / GRID_SIZE);
-  }
-
-  return std::pair<int, int>(lhs_idx, rhs_idx);
-};
 
 }  // namespace CF_PLAN
 

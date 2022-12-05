@@ -13,16 +13,13 @@
 
 #include "node.hpp"
 #include "sensor.h"
+#include "util.h"
 
 using namespace std;
 
 namespace CF_PLAN {
 
 #define NUMOFDIRS 26
-#define crazyFlie_width 0.10
-#define crazyFlie_length 0.10
-#define crazyFlie_height 0.10
-#define CF_size 0.10
 
 struct arrayHash {
   size_t operator()(const array<int, 3>& arr) const {
@@ -80,14 +77,17 @@ class Planner {
   }
 
  public:
-  Planner(int robot_x, int robot_y, int robot_z, int goal_x, int goal_y,
-          int goal_z) {
-    this->updateRobotPose(robot_x, robot_y, robot_z);
-    this->setGoalPose(goal_x, goal_y, goal_z);
+  Planner(double robot_x, double robot_y, double robot_z, double goal_x,
+          double goal_y, double goal_z, const std::string& file_path)
+      : sensor(file_path) {
+    auto robot = sensor.convert_point(robot_x, robot_y, robot_z);
+    auto goal = sensor.convert_point(goal_x, goal_y, goal_z);
+    this->updateRobotPose(robot.x, robot.y, robot.z);
+    this->setGoalPose(goal.x, goal.y, goal.z);
 
-    goal_idx = add_node(goal_x, goal_y, goal_z);
+    goal_idx = add_node(goal.x, goal.y, goal.z);
     s_goal = node_list[goal_idx].get();
-    umap[{goal_x, goal_y, goal_z}] = goal_idx;
+    umap[{goal.x, goal.y, goal.z}] = goal_idx;
 
     start_idx = add_node(this->robotposeX, this->robotposeY, this->robotposeZ);
     s_start = node_list[start_idx].get();
@@ -147,9 +147,7 @@ class Planner {
         int newY = s_current->getY() + dY[dir];
         int newZ = s_current->getZ() + dZ[dir];
 
-        if (sensor.is_valid(Coord((btScalar)(newX + 0.5) * CF_size,
-                                  (btScalar)(newY + 0.5) * CF_size,
-                                  (btScalar)(newZ + 0.5) * CF_size))) {
+        if (sensor.is_valid(Coord(newX, newY, newZ))) {
           // get unique node*
           Idx new_idx;
           if (umap.count({newX, newY, newZ}) == 0) {
@@ -193,11 +191,14 @@ class Planner {
   void printPath() {
     int i = 0;
     for (auto node : solution) {
-      cout << "step " << i << ": ";
-      cout << "x=" << node->getX() << " "
-           << "y=" << node->getY() << " "
-           << "z=" << node->getZ() << "\n";
-      i++;
+      // cout << "step " << i << ": ";
+      // cout << "x=" << node->getX() << " "
+      //      << "y=" << node->getY() << " "
+      //      << "z=" << node->getZ() << "\n";
+      // i++;
+      auto pt =
+          sensor.convert_idx(Coord(node->getX(), node->getY(), node->getZ()));
+      cout << pt[0] << "," << pt[1] << "," << pt[2] << "\n";
     }
   }
 };

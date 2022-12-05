@@ -5,9 +5,7 @@
 namespace CF_PLAN {
 
 namespace {
-constexpr int MAX_OBJ_NUM = 5000;
-constexpr double cfDetectRange = 1.0;
-constexpr double MAP_MARGIN = 0.05;  // 5cm margin
+constexpr double MAP_MARGIN = 0.0;  // 0cm margin
 }  // namespace
 
 World::World(const std::string& file_path) {
@@ -16,21 +14,18 @@ World::World(const std::string& file_path) {
 
   // create obstacle map
   for (const auto& block : block_info) {
-    std::vector<double> state_min = {block[0], block[1], block[3]};
-    std::vector<double> state_max = {block[4], block[5], block[6]};
-    auto xyz_start_idx = convert_point(
-        block[0] - MAP_MARGIN, block[1] - MAP_MARGIN, block[2] - MAP_MARGIN);
-    // auto x_coord_range = range2coord(state_min[0], state_max[0]);
-    // auto y_coord_range = range2coord(state_min[1], state_max[1]);
-    // auto z_coord_range = range2coord(state_min[2], state_max[2]);
-    // for (int i = x_coord_range.first; i < x_coord_range.second; i++) {
-    //   for (int j = y_coord_range.first; j < y_coord_range.second; j++) {
-    //     for (int k = z_coord_range.first; k < z_coord_range.second; k++) {
-    //       Coord curr_idx(i, j, k);
-    //       ocp_LUT.insert(curr_idx);
-    //     }
-    //   }
-    // }
+    auto start_idx = convert_point(block[0] - MAP_MARGIN, block[1] - MAP_MARGIN,
+                                   block[2] - MAP_MARGIN);
+    auto end_idx = convert_point(block[3] + MAP_MARGIN, block[4] + MAP_MARGIN,
+                                 block[5] + MAP_MARGIN);
+    for (int i = start_idx.x; i <= end_idx.x; i++) {
+      for (int j = start_idx.y; j <= end_idx.y; j++) {
+        for (int k = start_idx.z; k <= end_idx.z; k++) {
+          Coord curr_idx(i, j, k);
+          ocp_LUT.insert(curr_idx);
+        }
+      }
+    }
   }
 }
 
@@ -80,21 +75,13 @@ void World::load_world(const std::string& file_path) {
     // get blocks info
     std::vector<double> block_dim;
     if (var == "block") {
-      double orx, yor, zor, dx, dy, dz;
-      // origin
-      orx = (xmax + xmin) / 2;
-      yor = (ymax + ymin) / 2;
-      zor = (zmax + zmin) / 2;
-      dx = (xmax - xmin) / 2;
-      dy = (ymax - ymin) / 2;
-      dz = (zmax - zmin) / 2;
       // dimensions
-      block_dim.push_back(orx);
-      block_dim.push_back(yor);
-      block_dim.push_back(zor);
-      block_dim.push_back(dx);
-      block_dim.push_back(dy);
-      block_dim.push_back(dz);
+      block_dim.push_back(xmin);
+      block_dim.push_back(ymin);
+      block_dim.push_back(zmin);
+      block_dim.push_back(xmax);
+      block_dim.push_back(ymax);
+      block_dim.push_back(zmax);
       block_info.push_back(block_dim);
     }
   }
@@ -102,12 +89,21 @@ void World::load_world(const std::string& file_path) {
 
 Boundary World::get_bound() const { return world_bound; }
 
+Coord World::get_world_size() const { return world_size; }
+
 Coord World::convert_point(const double& x, const double& y, const double& z) {
   int x_idx, y_idx, z_idx;
   x_idx = fmin(fmax(floor((x - world_bound[0]) / GRID_SIZE), 0), world_size.x);
   y_idx = fmin(fmax(floor((y - world_bound[1]) / GRID_SIZE), 0), world_size.y);
   z_idx = fmin(fmax(floor((z - world_bound[2]) / GRID_SIZE), 0), world_size.x);
   return Coord(x_idx, y_idx, z_idx);
+}
+
+std::vector<double> World::convert_idx(const Coord& idx) {
+  auto x = world_bound[0] + (idx.x) * GRID_SIZE;
+  auto y = world_bound[1] + (idx.y) * GRID_SIZE;
+  auto z = world_bound[2] + (idx.z) * GRID_SIZE;
+  return {x, y, z};
 }
 
 bool World::is_ocp(Coord coord) const {
