@@ -2,6 +2,7 @@ close all;
 clear all;
 clc;
 addpath(genpath('./'));
+addpath(genpath('../bin/'))
 
 %% Plan path 1
 disp('Planning ...');
