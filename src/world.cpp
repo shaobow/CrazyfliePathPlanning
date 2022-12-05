@@ -5,44 +5,29 @@
 namespace CF_PLAN {
 
 namespace {
-constexpr int MAX_OBJ_NUM = 5000;
-constexpr double cfDetectRange = 1.0;
+constexpr double MAP_MARGIN = 0.0;  // 0cm margin
 }  // namespace
 
 World::World(const std::string& file_path) {
   // load map
   load_world(file_path);
 
-  // init local collision world
-  btVector3 worldAabbMin(world_bound[0], world_bound[1], world_bound[3]);
-  btVector3 worldAabbMax(world_bound[4], world_bound[5], world_bound[6]);
-
-  collision_config = std::make_unique<btDefaultCollisionConfiguration>();
-  collision_dispatcher =
-      std::make_unique<btCollisionDispatcher>(collision_config.get());
-  collision_broadphase = std::make_unique<bt32BitAxisSweep3>(
-      worldAabbMin, worldAabbMax, 5000, (btOverlappingPairCache*)0, true);
-  static_world = std::make_unique<btCollisionWorld>(collision_dispatcher.get(),
-                                                    collision_broadphase.get(),
-                                                    collision_config.get());
-
-  // add obstacles
+  // create obstacle map
   for (const auto& block : block_info) {
-    // Create two collision objects
-    btCollisionObject* box = new btCollisionObject();
-    // Move each to a specific location
-    box->getWorldTransform().setOrigin(
-        btVector3((btScalar)block[0], (btScalar)block[1], (btScalar)block[2]));
-    btBoxShape* box_shape =
-        new btBoxShape(btVector3(block[3], block[4], block[5]));
-    // Set the shape of each collision object
-    box->setCollisionShape(box_shape);
-    // Add the collision objects to our collision world
-    static_world->addCollisionObject(box, 2, 1);
+    auto start_idx = convert_point(block[0] - MAP_MARGIN, block[1] - MAP_MARGIN,
+                                   block[2] - MAP_MARGIN);
+    auto end_idx = convert_point(block[3] + MAP_MARGIN, block[4] + MAP_MARGIN,
+                                 block[5] + MAP_MARGIN);
+    for (int i = start_idx.x; i <= end_idx.x; i++) {
+      for (int j = start_idx.y; j <= end_idx.y; j++) {
+        for (int k = start_idx.z; k <= end_idx.z; k++) {
+          Coord curr_idx(i, j, k);
+          ocp_LUT.insert(curr_idx);
+        }
+      }
+    }
   }
 }
-
-World::~World() {}
 
 void World::load_world(const std::string& file_path) {
   std::ifstream mapFile;
@@ -81,23 +66,22 @@ void World::load_world(const std::string& file_path) {
       world_bound[4] = ymax;
       world_bound[5] = zmax;
     }
+
+    // get grid world max sizes
+    world_size.x = ceil(fabs(world_bound[3] - world_bound[0]) / GRID_SIZE);
+    world_size.y = ceil(fabs(world_bound[4] - world_bound[1]) / GRID_SIZE);
+    world_size.z = ceil(fabs(world_bound[5] - world_bound[2]) / GRID_SIZE);
+
+    // get blocks info
     std::vector<double> block_dim;
     if (var == "block") {
-      double orx, yor, zor, dx, dy, dz;
-      // origin
-      orx = (xmax + xmin) / 2;
-      yor = (ymax + ymin) / 2;
-      zor = (zmax + zmin) / 2;
-      dx = (xmax - xmin) / 2;
-      dy = (ymax - ymin) / 2;
-      dz = (zmax - zmin) / 2;
       // dimensions
-      block_dim.push_back(orx);
-      block_dim.push_back(yor);
-      block_dim.push_back(zor);
-      block_dim.push_back(dx);
-      block_dim.push_back(dy);
-      block_dim.push_back(dz);
+      block_dim.push_back(xmin);
+      block_dim.push_back(ymin);
+      block_dim.push_back(zmin);
+      block_dim.push_back(xmax);
+      block_dim.push_back(ymax);
+      block_dim.push_back(zmax);
       block_info.push_back(block_dim);
     }
   }
@@ -105,45 +89,27 @@ void World::load_world(const std::string& file_path) {
 
 Boundary World::get_bound() const { return world_bound; }
 
-std::vector<std::unique_ptr<btCollisionObject>> World::get_newly_detected(
-    const Coord& robot_state) {
-  std::vector<std::unique_ptr<btCollisionObject>> obj_list;
+Coord World::get_world_size() const { return world_size; }
 
-  // update robot location
-  btTransform btTrans;
-  btTrans.setIdentity();
-  btTrans.setOrigin(
-      btVector3(robot_state.getX(), robot_state.getY(), robot_state.getZ()));
-  static_robot->setWorldTransform(btTrans);
-
-  // TODO: create partial obstacle from virtual range contact info
-  // Perform collision detection
-  static_world->performDiscreteCollisionDetection();
-
-  int numManifolds = static_world->getDispatcher()->getNumManifolds();
-  // For each contact manifold
-  for (int i = 0; i < numManifolds; i++) {
-    btPersistentManifold* contactManifold =
-        static_world->getDispatcher()->getManifoldByIndexInternal(i);
-    const btCollisionObject* obA =
-        static_cast<const btCollisionObject*>(contactManifold->getBody0());
-    const btCollisionObject* obB =
-        static_cast<const btCollisionObject*>(contactManifold->getBody1());
-    contactManifold->refreshContactPoints(obA->getWorldTransform(),
-                                          obB->getWorldTransform());
-    int numContacts = contactManifold->getNumContacts();
-    // For each contact point in that manifold
-    for (int j = 0; j < numContacts; j++) {
-      // Get the contact information
-      btManifoldPoint& pt = contactManifold->getContactPoint(j);
-      btVector3 ptA = pt.getPositionWorldOnA();
-      btVector3 ptB = pt.getPositionWorldOnB();
-      double ptdist = pt.getDistance();
-    }
-  }
-
-  return obj_list;
+Coord World::convert_point(const double& x, const double& y, const double& z) {
+  int x_idx, y_idx, z_idx;
+  x_idx = fmin(fmax(floor((x - world_bound[0]) / GRID_SIZE), 0), world_size.x);
+  y_idx = fmin(fmax(floor((y - world_bound[1]) / GRID_SIZE), 0), world_size.y);
+  z_idx = fmin(fmax(floor((z - world_bound[2]) / GRID_SIZE), 0), world_size.x);
+  return Coord(x_idx, y_idx, z_idx);
 }
 
-btCollisionWorld* World::get_static_world() const { return static_world.get(); }
+std::vector<double> World::convert_idx(const Coord& idx) {
+  auto x = world_bound[0] + (idx.x) * GRID_SIZE;
+  auto y = world_bound[1] + (idx.y) * GRID_SIZE;
+  auto z = world_bound[2] + (idx.z) * GRID_SIZE;
+  return {x, y, z};
+}
+
+bool World::is_ocp(Coord coord) const {
+  if (ocp_LUT.count(coord) > 0) {
+    return true;
+  }
+  return false;
+}
 }  // namespace CF_PLAN

@@ -6,14 +6,10 @@ enable_testing()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-add_subdirectory(BulletCollision)
-add_subdirectory(LinearMath)
 
 SET(Planning_SRCS
     sensor.cpp
     world.cpp
-    btBulletCollisionAll.cpp
-    btLinearMathAll.cpp
     main.cpp
 )
 
@@ -22,7 +18,6 @@ SET(Planning_HDRS
     sensor.h
     world.h
     util.h
-    btBulletCollisionCommon.h
 )
 
 add_executable(cfPlanning ${Planning_SRCS})

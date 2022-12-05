@@ -6,6 +6,7 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include "util.h"
@@ -16,15 +17,11 @@ class World {
  private:
   // boundary of the satic world
   Boundary world_bound;
-  // static collision world
-  std::unique_ptr<btCollisionWorld> static_world;
-  std::unique_ptr<btCollisionDispatcher> collision_dispatcher;
-  std::unique_ptr<btCollisionConfiguration> collision_config;
-  std::unique_ptr<btBroadphaseInterface> collision_broadphase;
-  // robot object in static world
-  std::unique_ptr<btCollisionObject> static_robot;
-
+  Coord world_size;
+  // blocks info
   std::vector<std::vector<double>> block_info;
+  // grid occupancy LUT
+  std::unordered_set<Coord, coordHash> ocp_LUT;
 
   // load world map from predefined text file
   void load_world(const std::string& file_path);
@@ -33,16 +30,16 @@ class World {
 
  public:
   World(const std::string& file_path);
-  ~World();
 
   // get boundary
   Boundary get_bound() const;
 
-  // check newly detected obstacles
-  std::vector<std::unique_ptr<btCollisionObject>> get_newly_detected(
-      const Coord& robot_state);
+  bool is_ocp(Coord coord) const;
 
-  btCollisionWorld* get_static_world() const;
+  Coord get_world_size() const;
+
+  Coord convert_point(const double& x, const double& y, const double& z);
+  std::vector<double> convert_idx(const Coord& idx);
 };
 
 }  // namespace CF_PLAN
