@@ -11,7 +11,6 @@
 namespace CF_PLAN {
 
 constexpr size_t BOUND_SIZE = 6;
-constexpr double GRID_SIZE = 0.25;  // 25 cm grid size
 
 struct Vertex {
   double x;

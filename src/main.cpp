@@ -10,7 +10,9 @@
 #include "world.h"
 
 /* Input Arguments */
-#define IN prhs[0]
+#define MAP_ID prhs[0]
+#define GRID_SIZE prhs[1]
+#define MARGIN_SIZE prhs[2]
 
 /* Output Arguments */
 #define PATH plhs[0]
@@ -21,7 +23,7 @@ const std::string MAP2_PATH = "./maps/map2.txt";
 const std::string MAP3_PATH = "./maps/map3.txt";
 }  // namespace
 
-vector<vector<double>> plan(int map_id) {
+vector<vector<double>> plan(int map_id, double grid_size, double margin_size) {
   std::string map_path;
   double robot_x, robot_y, robot_z;
   double goal_x, goal_y, goal_z;
@@ -38,7 +40,7 @@ vector<vector<double>> plan(int map_id) {
       break;
 
     case 3:
-      map_path = MAP2_PATH;
+      map_path = MAP3_PATH;
       robot_x = 0.0;
       robot_y = 5.0;
       robot_z = 5.0;
@@ -54,7 +56,7 @@ vector<vector<double>> plan(int map_id) {
 
   auto start = std::chrono::high_resolution_clock::now();
   CF_PLAN::Planner astar(robot_x, robot_y, robot_z, goal_x, goal_y, goal_z,
-                         map_path);
+                         map_path, grid_size, margin_size);
   auto stop = std::chrono::high_resolution_clock::now();
   auto construct_time =
       std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
@@ -75,16 +77,18 @@ vector<vector<double>> plan(int map_id) {
 /* MEX entry function */
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
   /* argument check */
-  if (nrhs != 1) {
-    mexErrMsgIdAndTxt("MATLAB:cudaAdd:inputmismatch",
-                      "Input arguments must be 1!");
+  if (nrhs != 3) {
+    mexErrMsgIdAndTxt("MATLAB:inputmismatch", "Input arguments must be 3!");
   }
   if (nlhs != 1) {
-    mexErrMsgIdAndTxt("MATLAB:cudaAdd:outputmismatch",
-                      "Output arguments must be 1!");
+    mexErrMsgIdAndTxt("MATLAB:outputmismatch", "Output arguments must be 1!");
   }
 
-  auto solution = plan(1);
+  int map_id = (int)mxGetScalar(MAP_ID);
+  double grid_size = mxGetScalar(GRID_SIZE);
+  double margin_size = mxGetScalar(MARGIN_SIZE);
+
+  auto solution = plan(map_id, grid_size, margin_size);
   mwSize m = solution.size();
   mwSize n = 3;
   PATH = mxCreateDoubleMatrix(m, n, mxREAL);

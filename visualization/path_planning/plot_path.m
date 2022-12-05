@@ -1,4 +1,4 @@
-function plot_path2(map, path)
+function plot_path(map, path)
 % PLOT_PATH Visualize a path through an environment
 %   PLOT_PATH(map, path) creates a figure showing a path through the
 %   environment.  path is an N-by-3 matrix where each row corresponds to the
@@ -64,5 +64,5 @@ pcshow(path, [0,0,0],'MarkerSize', 0.1);
 end
 % axis([map.boundary(1)-1, map.boundary(4)-1, map.boundary(2)-1,map.boundary(5)+1,map.boundary(3)+1,map.boundary(6)+1])
 hold off;
-% view(3);
+view(3); % default 3D view
 end

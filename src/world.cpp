@@ -4,20 +4,17 @@
 
 namespace CF_PLAN {
 
-namespace {
-constexpr double MAP_MARGIN = 0.0;  // 0cm margin
-}  // namespace
-
-World::World(const std::string& file_path) {
+World::World(const std::string& file_path, double grid_size, double margin_size)
+    : grid_size(grid_size), margin_size(margin_size) {
   // load map
   load_world(file_path);
 
   // create obstacle map
   for (const auto& block : block_info) {
-    auto start_idx = convert_point(block[0] - MAP_MARGIN, block[1] - MAP_MARGIN,
-                                   block[2] - MAP_MARGIN);
-    auto end_idx = convert_point(block[3] + MAP_MARGIN, block[4] + MAP_MARGIN,
-                                 block[5] + MAP_MARGIN);
+    auto start_idx = convert_point(
+        block[0] - margin_size, block[1] - margin_size, block[2] - margin_size);
+    auto end_idx = convert_point(block[3] + margin_size, block[4] + margin_size,
+                                 block[5] + margin_size);
     for (int i = start_idx.x; i <= end_idx.x; i++) {
       for (int j = start_idx.y; j <= end_idx.y; j++) {
         for (int k = start_idx.z; k <= end_idx.z; k++) {
@@ -68,9 +65,9 @@ void World::load_world(const std::string& file_path) {
     }
 
     // get grid world max sizes
-    world_size.x = ceil(fabs(world_bound[3] - world_bound[0]) / GRID_SIZE);
-    world_size.y = ceil(fabs(world_bound[4] - world_bound[1]) / GRID_SIZE);
-    world_size.z = ceil(fabs(world_bound[5] - world_bound[2]) / GRID_SIZE);
+    world_size.x = ceil(fabs(world_bound[3] - world_bound[0]) / grid_size);
+    world_size.y = ceil(fabs(world_bound[4] - world_bound[1]) / grid_size);
+    world_size.z = ceil(fabs(world_bound[5] - world_bound[2]) / grid_size);
 
     // get blocks info
     std::vector<double> block_dim;
@@ -93,16 +90,16 @@ Coord World::get_world_size() const { return world_size; }
 
 Coord World::convert_point(const double& x, const double& y, const double& z) {
   int x_idx, y_idx, z_idx;
-  x_idx = fmin(fmax(floor((x - world_bound[0]) / GRID_SIZE), 0), world_size.x);
-  y_idx = fmin(fmax(floor((y - world_bound[1]) / GRID_SIZE), 0), world_size.y);
-  z_idx = fmin(fmax(floor((z - world_bound[2]) / GRID_SIZE), 0), world_size.x);
+  x_idx = fmin(fmax(floor((x - world_bound[0]) / grid_size), 0), world_size.x);
+  y_idx = fmin(fmax(floor((y - world_bound[1]) / grid_size), 0), world_size.y);
+  z_idx = fmin(fmax(floor((z - world_bound[2]) / grid_size), 0), world_size.x);
   return Coord(x_idx, y_idx, z_idx);
 }
 
 std::vector<double> World::convert_idx(const Coord& idx) {
-  auto x = world_bound[0] + (idx.x) * GRID_SIZE;
-  auto y = world_bound[1] + (idx.y) * GRID_SIZE;
-  auto z = world_bound[2] + (idx.z) * GRID_SIZE;
+  auto x = world_bound[0] + (idx.x) * grid_size;
+  auto y = world_bound[1] + (idx.y) * grid_size;
+  auto z = world_bound[2] + (idx.z) * grid_size;
   return {x, y, z};
 }
 

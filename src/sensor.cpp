@@ -2,7 +2,9 @@
 
 namespace CF_PLAN {
 
-Sensor::Sensor(const std::string& file_path) : static_world(file_path) {}
+Sensor::Sensor(const std::string& file_path, double grid_size,
+               double margin_size)
+    : static_world(file_path, grid_size, margin_size) {}
 
 bool Sensor::update_collision_world(const Coord& robot_state) {
   bool flag = false;
@@ -23,11 +25,6 @@ bool Sensor::update_collision_world(const Coord& robot_state) {
 }
 
 bool Sensor::is_valid(const Coord& robot_state) {
-  // if (partial_map.count(robot_state) > 0) {
-  //   return false;
-  // }
-
-  // only for testing static world
   auto world_size = static_world.get_world_size();
   if (robot_state.x < 0 || robot_state.x > world_size.x) {
     return false;
@@ -38,6 +35,12 @@ bool Sensor::is_valid(const Coord& robot_state) {
   if (robot_state.z < 0 || robot_state.z > world_size.z) {
     return false;
   }
+
+  // if (partial_map.count(robot_state) > 0) {
+  //   return false;
+  // }
+
+  // only for testing static world
   if (static_world.is_ocp(robot_state)) {
     return false;
   }

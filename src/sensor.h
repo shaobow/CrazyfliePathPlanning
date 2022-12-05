@@ -20,7 +20,7 @@ class Sensor {
   int range = 1;
 
  public:
-  Sensor(const std::string& file_path);
+  Sensor(const std::string& file_path, double grid_size, double margin_size);
 
   // update the collision world by adding newly detected part to the object list
   // as a new collision objects

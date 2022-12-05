@@ -17,8 +17,16 @@
 using namespace std;
 
 namespace CF_PLAN {
+#define FULL_CONNECT
 
+#ifdef FULL_CONNECT
 #define NUMOFDIRS 26
+#else
+#define NUMOFDIRS 6
+#endif
+
+#define sqrt2 1.414
+#define sqrt3 1.732
 
 struct arrayHash {
   size_t operator()(const array<int, 3>& arr) const {
@@ -31,6 +39,7 @@ struct arrayHash {
 
 class Planner {
  private:
+#ifdef FULL_CONNECT
   // 26-connected grid
   int dX[NUMOFDIRS] = {0,  0,  1, 0, 1,  1,  1, -1, 0,  0, -1, -1, 0,
                        -1, -1, 1, 1, -1, -1, 1, -1, -1, 0, 0,  1,  1};
@@ -38,9 +47,17 @@ class Planner {
                        -1, 1, -1, 1, -1, 1, -1, 0, 1,  -1, 1,  -1, 0};
   int dZ[NUMOFDIRS] = {1,  0, 0, 1,  1, 0,  1,  0, 0, -1, 0,  -1, -1,
                        -1, 1, 1, -1, 1, -1, -1, 1, 0, 1,  -1, 0,  -1};
-  double cost[NUMOFDIRS] = {
-      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};  // TODO: evaluate actual edge cost
+  double cost[NUMOFDIRS] = {1,     1,     1,     sqrt2, sqrt2, sqrt2, sqrt3,
+                            1,     1,     1,     sqrt2, sqrt2, sqrt2, sqrt3,
+                            sqrt3, sqrt3, sqrt3, sqrt3, sqrt3, sqrt3, sqrt2,
+                            sqrt2, sqrt2, sqrt2, sqrt2, sqrt2};
+#else
+  // 26-connected grid
+  int dX[NUMOFDIRS] = {0, 0, 1, 0, 0, -1};
+  int dY[NUMOFDIRS] = {0, 1, 0, 0, -1, 0};
+  int dZ[NUMOFDIRS] = {1, 0, 0, -1, 0, 0};
+  double cost[NUMOFDIRS] = {1, 1, 1, 1, 1, 1};
+#endif
 
   // goal info
   int goalposeX;
@@ -77,8 +94,9 @@ class Planner {
 
  public:
   Planner(double robot_x, double robot_y, double robot_z, double goal_x,
-          double goal_y, double goal_z, const std::string& file_path)
-      : sensor(file_path) {
+          double goal_y, double goal_z, const std::string& file_path,
+          double grid_size, double margin_size)
+      : sensor(file_path, grid_size, margin_size) {
     auto robot = sensor.convert_point(robot_x, robot_y, robot_z);
     auto goal = sensor.convert_point(goal_x, goal_y, goal_z);
     this->updateRobotPose(robot.x, robot.y, robot.z);

@@ -15,6 +15,9 @@ namespace CF_PLAN {
 
 class World {
  private:
+  // grid info
+  double grid_size;
+  double margin_size;
   // boundary of the satic world
   Boundary world_bound;
   Coord world_size;
@@ -26,10 +29,8 @@ class World {
   // load world map from predefined text file
   void load_world(const std::string& file_path);
 
-  void load_test_world();
-
  public:
-  World(const std::string& file_path);
+  World(const std::string& file_path, double grid_size, double margin_size);
 
   // get boundary
   Boundary get_bound() const;
