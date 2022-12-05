@@ -3,7 +3,6 @@ project(cfPlanning VERSION 0.1.0)
 
 SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR})
 SET(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake) # add FindMatlab module
-SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/../bin)
 
 add_definitions(/DMATLAB_MEX_FILE) #define matlab macros
 add_definitions(/DMX_COMPAT_32)

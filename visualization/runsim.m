@@ -4,48 +4,42 @@ clc;
 addpath(genpath('./'));
 addpath(genpath('../bin/'))
 
-%% Plan path 1
-% disp('Planning ...');
-% map = load_map('maps/map1.txt', 0.25, 0.25, 0.25);
-% start = {[0.0  -4.9 0.2]};
-% stop  = {[6.0  18.0-1 5.0]};
-% % stop  = {[6.0  18.0-6 3.0]};
-% nquad = length(start);
-% for qn = 1:nquad
-%     tic
-%      %path{qn} = dijkstra(map, start{qn}, stop{qn}, true);
-%       path{qn} = cfPlanning(1, 0.25, 0.25);
-%     toc
-% end
-% if nquad == 1
-%     plot_path(map, path{1});
-% else
-%     % you could modify your plot_path to handle cell input for multiple robots
-% end
+map_id = 1;
+path = cell(1);
 
+switch map_id
+    case 1
+        % Plan path 1
+        grid_size = 0.25;
+        margin_size = 0.25;
+        map = load_map('maps/map1.txt', grid_size, grid_size, 0.0);
+        start = {[0.0  -4.9 0.2]};
+        stop  = {[6.0  17.0 5.0]};
+        tic
+          disp('Planning ...');
+          path{1} = cfPlanning(1, grid_size, margin_size);
+        toc
+        
+        plot_path(map, path{1});
+    case 3
+        % Plan path 3
+        grid_size = 0.2;
+        margin_size = 0.2;
+        map = load_map('maps/map3.txt', grid_size, grid_size, 0.0);
+        start = {[0.0, 5.0, 5.0]};
+        stop  = {[20.0, 5.0, 5.0]};
+        nquad = length(start);
+        tic
+            disp('Planning ...');
+            path{1} = cfPlanning(3, grid_size, margin_size);
+        toc
+        plot_path(map, path{1});
 
-%% Plan path 3
-disp('Planning ...');
-map = load_map('maps/map3.txt', 0.2, 0.2, 0.0);
-start = {[0.0, 5.0, 5.0]};
-stop  = {[20.0, 5.0, 5.0]};
-nquad = length(start);
-for qn = 1:nquad
-    tic
-    path{qn} = cfPlanning(3, 0.2, 0.2);
-    toc
 end
-if nquad == 1
-    plot_path(map, path{1});
-else
-    % you could modify your plot_path to handle cell input for multiple robots
-end
-
 
 %% Additional init script
 init_script;
 
 %% Run trajectory
-% trajectory = test_trajectory(start, stop, map, path, true); % with visualization
 trajectory = test_trajectory(map, path);
 
