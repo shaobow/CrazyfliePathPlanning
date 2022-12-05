@@ -6,12 +6,11 @@
 #include <algorithm>
 #include <chrono>
 #include <iostream>
-#include <map>
 #include <queue>
+#include <unordered_map>
 #include <unordered_set>
-#include <utility>
 
-#include "node.hpp"
+#include "node.h"
 #include "sensor.h"
 #include "util.h"
 
@@ -188,9 +187,6 @@ class Planner {
       Coord xyz_idx(curr->getX(), curr->getY(), curr->getZ());
       solution.push_back(sensor.convert_idx(xyz_idx));
     }
-
-    Coord xyz_idx(curr->getX(), curr->getY(), curr->getZ());
-    solution.push_back(sensor.convert_idx(xyz_idx));
   }
 
   void printPath() {

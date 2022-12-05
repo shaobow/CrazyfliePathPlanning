@@ -1,12 +1,10 @@
-#include <bits/stdtr1c++.h>
 #include <float.h>
 
+#include <cmath>
 #include <iostream>
-#include <utility>
-#include <vector>
 
 #define MAXDOUBLE DBL_MAX
-constexpr double weight = 5.0;
+constexpr double weight = 1.0;
 
 using namespace std;
 

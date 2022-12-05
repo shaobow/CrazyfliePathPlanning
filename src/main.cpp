@@ -114,7 +114,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 
   for (int i = 0; i < m; i++) {
     for (int j = 0; j < n; j++) {
-      path_ptr[i * n + j] = solution[i][j];
+      path_ptr[j * m + i] = solution[i][j];
     }
   }
 
