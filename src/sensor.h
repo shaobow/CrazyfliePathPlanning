@@ -24,7 +24,7 @@ class Sensor {
 
   // update the collision world by adding newly detected part to the object list
   // as a new collision objects
-  bool update_collision_world(const Coord& robot_state);
+  std::vector<Coord> update_collision_world(const Coord& robot_state);
 
   bool is_valid(const Coord& robot_state);
 
