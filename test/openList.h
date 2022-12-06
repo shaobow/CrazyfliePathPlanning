@@ -47,7 +47,7 @@ class openList {
 
       itr->second = key_u;
     } else {
-      if (umap.count(itr->first) == 0) {
+      if (umap.count(u) == 0) {
         idx_new = add_node(u[0], u[1], u[2]);
       }
 

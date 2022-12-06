@@ -97,8 +97,8 @@ class PlannerDstar {
     this->updateRobotPose(robot.x, robot.y, robot.z);
 
     this->coord_goal = {goal.x, goal.y, goal.z};
-    idx_goal = U.add_node(goal_x, goal_y, goal_z);
     s_goal = U.getNode(this->coord_goal);
+    idx_goal = U.umap[coord_goal];
 
     solution.clear();
   };
@@ -107,14 +107,14 @@ class PlannerDstar {
 
   void updateRobotPose(int robot_x, int robot_y, int robot_z) {
     this->coord_start = {robot_x, robot_y, robot_z};
-    idx_start = U.add_node(robot_x, robot_y, robot_z);
     s_start = U.getNode(this->coord_start);
+    idx_start = U.umap[coord_start];
   }
 
   // TODO: implement D* Lite
   pair<double, double> calculateKey(array<int, 3>& coord_u) {
     nodeDstar* node_u = U.getNode(coord_u);
-    int min_g_rhs = std::min(node_u->get_g_value(), node_u->get_rhs_value());
+    double min_g_rhs = std::min(node_u->get_g_value(), node_u->get_rhs_value());
     return make_pair(min_g_rhs + node_u->calc_h_value(s_start), min_g_rhs);
   }
 
