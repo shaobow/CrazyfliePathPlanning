@@ -18,17 +18,6 @@
 using namespace std;
 
 namespace CF_PLAN {
-#define FULL_CONNECT
-
-#ifdef FULL_CONNECT
-#define NUMOFDIRS 26
-#else
-#define NUMOFDIRS 6
-#endif
-
-#define sqrt2 1.414
-#define sqrt3 1.732
-#define cost_inf DBL_MAX
 
 class PlannerDstar {
  private:
@@ -97,8 +86,8 @@ class PlannerDstar {
     this->updateRobotPose(robot.x, robot.y, robot.z);
 
     this->coord_goal = {goal.x, goal.y, goal.z};
-    idx_goal = U.add_node(goal_x, goal_y, goal_z);
     s_goal = U.getNode(this->coord_goal);
+    idx_goal = U.umap[coord_goal];
 
     solution.clear();
   };
@@ -107,14 +96,14 @@ class PlannerDstar {
 
   void updateRobotPose(int robot_x, int robot_y, int robot_z) {
     this->coord_start = {robot_x, robot_y, robot_z};
-    idx_start = U.add_node(robot_x, robot_y, robot_z);
     s_start = U.getNode(this->coord_start);
+    idx_start = U.umap[coord_start];
   }
 
   // TODO: implement D* Lite
   pair<double, double> calculateKey(array<int, 3>& coord_u) {
     nodeDstar* node_u = U.getNode(coord_u);
-    int min_g_rhs = std::min(node_u->get_g_value(), node_u->get_rhs_value());
+    double min_g_rhs = std::min(node_u->get_g_value(), node_u->get_rhs_value());
     return make_pair(min_g_rhs + node_u->calc_h_value(s_start), min_g_rhs);
   }
 
@@ -125,8 +114,8 @@ class PlannerDstar {
       if (!sensor.is_valid(Coord(coord_u[0], coord_u[1], coord_u[2])))
         node_u->set_rhs_value(cost_inf);
       else {
-        int rhs_min = cost_inf;
-        int rhs_tmp;
+        double rhs_min = cost_inf;
+        double rhs_tmp;
 
         for (int dir = 0; dir < NUMOFDIRS; dir++) {
           int succX = coord_u[0] + dX[dir];
@@ -155,10 +144,10 @@ class PlannerDstar {
   void computeShortestPath() {
     array<int, 3> coord_u = U.top();
     pair<double, double> key_u = U.topKey(coord_u);
-    pair<double, double> k_old;
-
-    pair<double, double> k_u_new;
     nodeDstar* node_u = U.getNode(coord_u);
+
+    pair<double, double> k_old;    //
+    pair<double, double> k_u_new;  //
 
     while (isSmallerKey(key_u, calculateKey(coord_start)) ||
            s_start->get_rhs_value() != s_start->get_g_value()) {
@@ -190,7 +179,16 @@ class PlannerDstar {
         }
         updateVertex(coord_u);
       }
+
+      coord_u = U.top();
+      key_u = U.topKey(coord_u);
+      node_u = U.getNode(coord_u);
     }
+
+    // cout << "exit cond 1: " << isSmallerKey(key_u, calculateKey(coord_start))
+    //      << endl;
+    // cout << "exit cond 2: "
+    //      << (s_start->get_rhs_value() != s_start->get_g_value()) << endl;
   }
 
   void initialize() {
@@ -202,6 +200,7 @@ class PlannerDstar {
     update_s_last_2_s_start();
     initialize();
     computeShortestPath();
+    cout << "**** 1st computeShortestPath() ****" << endl;
 
     vector<Coord> Coord_updated;
     array<int, 3> coord_updated;
@@ -210,10 +209,10 @@ class PlannerDstar {
       /* if(g(s_start) == inf) then there is no known path */
       if (s_start->get_g_value() == DBL_MAX) {
         cout << "**** NO KNOWN PATH ****" << endl;
-        break;
+        return;
       }
 
-      // check if any edge cost changes
+      // check if any edge cost changes Coord_updated =
       Coord_updated = sensor.update_collision_world(
           Coord(coord_start[0], coord_start[1], coord_start[2]));
       if (Coord_updated.size() != 0) {
@@ -224,15 +223,17 @@ class PlannerDstar {
           coord_updated = {itr.x, itr.y, itr.z};
           updateVertex(coord_updated);
         }
+
         computeShortestPath();
+        cout << "**** RE-PLANED ****" << endl;
       }
 
       // move coord_start to coord_next
       if (sensor.is_valid(
               Coord(coord_start[0], coord_start[1], coord_start[2]))) {
         array<int, 3> coord_succ_min;
-        int min_cost_and_g = DBL_MAX;
-        int min_tmp;
+        double min_cost_and_g = DBL_MAX;
+        double min_tmp;
 
         int succX;
         int succY;
@@ -257,6 +258,10 @@ class PlannerDstar {
         update_s_start(coord_succ_min);
       }
     }
+
+    cout << "**** REACH GOAL POSE ****" << endl;
+    Coord xyz_idx(coord_start[0], coord_start[1], coord_start[2]);
+    solution.push_back(sensor.convert_idx(xyz_idx));
   }
 
   void update_s_last_2_s_start() {
@@ -266,22 +271,25 @@ class PlannerDstar {
   }
 
   void update_s_start(array<int, 3>& coord_new) {
+    Coord xyz_idx(coord_start[0], coord_start[1], coord_start[2]);
+    solution.push_back(sensor.convert_idx(xyz_idx));
+
     coord_start = coord_new;
     idx_start = U.umap[coord_start];
     s_start = U.getNode(coord_start);
   }
 
-  void backTrack(nodeDstar* s_current) {
-    auto curr = s_current;
-    solution.clear();
+  // void backTrack(nodeDstar* s_current) {
+  //   auto curr = s_current;
+  //   solution.clear();
 
-    while (curr->get_back_ptr() != nullptr) {
-      curr = curr->get_back_ptr();
+  //   while (curr->get_back_ptr() != nullptr) {
+  //     curr = curr->get_back_ptr();
 
-      Coord xyz_idx(curr->getX(), curr->getY(), curr->getZ());
-      solution.push_back(sensor.convert_idx(xyz_idx));
-    }
-  }
+  //     Coord xyz_idx(curr->getX(), curr->getY(), curr->getZ());
+  //     solution.push_back(sensor.convert_idx(xyz_idx));
+  //   }
+  // }
 
   void printPath() {
     int i = 0;

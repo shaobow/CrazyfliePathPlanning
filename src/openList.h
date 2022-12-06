@@ -41,17 +41,24 @@ class openList {
     Idx idx_new;
 
     if (itr != pq.end()) {
-      array<int, 3> coord_exit = itr->first;
-      umap[coord_exit] = idx_new;
-      node_list[idx_new].get()->set_key(key_u);
-
-      itr->second = key_u;
-    } else {
-      if (umap.count(itr->first) == 0) {
-        idx_new = add_node(u[0], u[1], u[2]);
-      }
+      // cout << "situation 3" << endl;
 
       umap[u] = idx_new;
+      node_list[idx_new].get()->set_key(key_u);
+
+      itr->second = key_u;  // update key value
+    } else {
+      if (umap.count(u) == 0) {
+        // cout << "situation 2" << endl;
+
+        idx_new = add_node(u[0], u[1], u[2]);
+        umap[u] = idx_new;
+      } else {
+        // cout << "situation 1" << endl;
+
+        idx_new = umap[u];
+      }
+
       node_list[idx_new].get()->set_key(key_u);
       pq.insert(make_pair(u, key_u));
     }
@@ -111,13 +118,16 @@ class openList {
   bool empty() { return pq.size() == 0; }
 
   nodeDstar* getNode(array<int, 3> coord_u) {
+    Idx idx_u;
     if (umap.count(coord_u) == 0) {
-      Idx idx_new = add_node(coord_u[0], coord_u[1], coord_u[2]);
-      umap[coord_u] = idx_new;
+      idx_u = add_node(coord_u[0], coord_u[1], coord_u[2]);
+      umap[coord_u] = idx_u;
+    } else {
+      idx_u = umap[coord_u];
     }
 
-    return node_list[umap[coord_u]].get();
+    return node_list[idx_u].get();
   }
-};
+};  // namespace CF_PLAN
 }  // namespace CF_PLAN
 #endif
