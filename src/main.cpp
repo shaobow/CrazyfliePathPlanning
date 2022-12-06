@@ -56,12 +56,12 @@ vector<vector<double>> plan(int map_id, double grid_size, double margin_size) {
   }
 
   auto start = std::chrono::high_resolution_clock::now();
-  CF_PLAN::Planner dstarLite(robot_x, robot_y, robot_z, goal_x, goal_y, goal_z,
-                             map_path, grid_size, margin_size);
+  CF_PLAN::PlannerDstar dstarLite(robot_x, robot_y, robot_z, goal_x, goal_y,
+                                  goal_z, map_path, grid_size, margin_size);
   auto stop = std::chrono::high_resolution_clock::now();
   auto construct_time =
       std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
-  std::cout << "Planner class takes " << construct_time.count() / 1000.0
+  std::cout << "D* Lite planner takes " << construct_time.count() / 1000.0
             << " seconds to construct.\n";
 
   start = chrono::high_resolution_clock::now();
@@ -70,7 +70,7 @@ vector<vector<double>> plan(int map_id, double grid_size, double margin_size) {
   auto solve_time = chrono::duration_cast<chrono::milliseconds>(stop - start);
   dstarLite.printPath();
   auto solution = dstarLite.getPath();
-  std::cout << "Planner takes " << solve_time.count() / 1000.0
+  std::cout << "D* Lite planner takes " << solve_time.count() / 1000.0
             << " seconds to find solution.\n";
   return solution;
 }
