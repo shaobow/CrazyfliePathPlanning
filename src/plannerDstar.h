@@ -109,8 +109,8 @@ class PlannerDstar {
     this->updateRobotPose(robot_x, robot_y, robot_z);
 
     this->coord_goal = {goal_x, goal_y, goal_z};
-    idx_goal = U.add_node(goal_x, goal_y, goal_z);
     s_goal = U.getNode(this->coord_goal);
+    idx_goal = U.umap[coord_goal];
 
     solution.clear();
   };
@@ -119,14 +119,14 @@ class PlannerDstar {
 
   void updateRobotPose(int robot_x, int robot_y, int robot_z) {
     this->coord_start = {robot_x, robot_y, robot_z};
-    idx_start = U.add_node(robot_x, robot_y, robot_z);
     s_start = U.getNode(this->coord_start);
+    idx_start = U.umap[coord_start];
   }
 
   // TODO: implement D* Lite
   pair<double, double> calculateKey(array<int, 3>& coord_u) {
     nodeDstar* node_u = U.getNode(coord_u);
-    int min_g_rhs = std::min(node_u->get_g_value(), node_u->get_rhs_value());
+    double min_g_rhs = std::min(node_u->get_g_value(), node_u->get_rhs_value());
     return make_pair(min_g_rhs + node_u->calc_h_value(s_start), min_g_rhs);
   }
 
@@ -167,10 +167,12 @@ class PlannerDstar {
   void computeShortestPath() {
     array<int, 3> coord_u = U.top();
     pair<double, double> key_u = U.topKey(coord_u);
-    pair<double, double> k_old;
-
-    pair<double, double> k_u_new;
     nodeDstar* node_u = U.getNode(coord_u);
+
+    pair<double, double> k_old;    //
+    pair<double, double> k_u_new;  //
+
+    int i = 0;
 
     while (isSmallerKey(key_u, calculateKey(coord_start)) ||
            s_start->get_rhs_value() != s_start->get_g_value()) {
@@ -202,15 +204,29 @@ class PlannerDstar {
         }
         updateVertex(coord_u);
       }
+
+      cout << i << endl;
+      i++;
+
+      coord_u = U.top();
+      key_u = U.topKey(coord_u);
+      node_u = U.getNode(coord_u);
     }
+
+    cout << "exit cond 1: " << isSmallerKey(key_u, calculateKey(coord_start))
+         << endl;
+    cout << "exit cond 2: "
+         << (s_start->get_rhs_value() != s_start->get_g_value()) << endl;
   }
 
   void initialize() {
     s_goal->set_rhs_value(0);
     U.insert(coord_goal, calculateKey(coord_goal));
+    cout << "in initialize" << endl;
   }
 
   void plan() {
+    cout << "in planning" << endl;
     update_s_last_2_s_start();
     initialize();
     computeShortestPath();
@@ -222,7 +238,7 @@ class PlannerDstar {
       /* if(g(s_start) == inf) then there is no known path */
       if (s_start->get_g_value() == DBL_MAX) {
         cout << "**** NO KNOWN PATH ****" << endl;
-        break;
+        return;
       }
 
       // check if any edge cost changes
@@ -269,6 +285,10 @@ class PlannerDstar {
         update_s_start(coord_succ_min);
       }
     }
+
+    cout << "**** REACH GOAL POSE ****" << endl;
+    vector<int> xyz{coord_start[0], coord_start[1], coord_start[2]};
+    solution_grid.push_back(xyz);
   }
 
   void update_s_last_2_s_start() {
@@ -278,8 +298,9 @@ class PlannerDstar {
   }
 
   void update_s_start(array<int, 3>& coord_new) {
-    vector<int> xyz{coord_new[0], coord_new[1], coord_new[2]};
+    vector<int> xyz{coord_start[0], coord_start[1], coord_start[2]};
     solution_grid.push_back(xyz);
+
     coord_start = coord_new;
     idx_start = U.umap[coord_start];
     s_start = U.getNode(coord_start);

@@ -1,13 +1,14 @@
 #include <iostream>
 
-//#include "plannerDstar.h"
-#include "planner.h"
+#include "plannerDstar.h"
+//#include "planner.h"
 
 int main(int, char**) {
-  int robot_x = 0, robot_y = -49, robot_z = 2;
-  int goal_x = 60, goal_y = 170, goal_z = 5;
+  int robot_x = 0, robot_y = 0, robot_z = 1;
+  int goal_x = 50, goal_y = 50, goal_z = 0;
 
-  CF_PLAN::Planner dstar(robot_x, robot_y, robot_z, goal_x, goal_y, goal_z);
+  CF_PLAN::PlannerDstar dstar(robot_x, robot_y, robot_z, goal_x, goal_y,
+                              goal_z);
   auto start = chrono::high_resolution_clock::now();
   dstar.plan();
   auto stop = chrono::high_resolution_clock::now();
