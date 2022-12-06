@@ -74,6 +74,7 @@ classdef QuadPlot < handle
                 Q.motor(1,5) + Q.text_dist, ...
                 Q.motor(2,5) + Q.text_dist, ...
                 Q.motor(3,5) + Q.text_dist, num2str(qn));
+            set(Q.h_3d, 'color', 'w')
             hold(Q.h_3d, 'off')
         end
 

@@ -43,16 +43,27 @@ end
 tic
   disp('Planning ...');
   astar_path{1} = cfPlanning(map_id, grid_size, margin_size, start{1}', stop{1}',~use_dstar);
-  dstar_path{1} = cfPlanning(map_id, grid_size, margin_size, start{1}', stop{1}',use_dstar);
 toc
 
 %plot_path(map, path{1});
 
 %% Additional init script
-% init_script;
-trajectory_generator([], [], map, astar_path);
+init_script;
+
+%% Run trajectory
 trajectory = test_trajectory(map, astar_path);
 
-%% 
-trajectory_generator([], [], map, dstar_path);
-trajectory = test_trajectory(map, dstar_path);
+%%
+tic
+  disp('Planning ...');
+  astar_path{1} = cfPlanning(map_id, grid_size, margin_size, start{1}', stop{1}',~use_dstar);
+toc
+
+%plot_path(map, path{1});
+
+%% Additional init script
+init_script;
+
+%% Run trajectory
+trajectory = test_trajectory(map, astar_path);
+
