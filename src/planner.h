@@ -28,15 +28,6 @@ namespace CF_PLAN {
 #define sqrt2 1.414
 #define sqrt3 1.732
 
-struct arrayHash {
-  size_t operator()(const array<int, 3>& arr) const {
-    size_t hx = std::hash<int>{}(arr[0]);
-    size_t hy = std::hash<int>{}(arr[1]) << 1;
-    size_t hz = std::hash<int>{}(arr[2]) << 2;
-    return (hx ^ hy) ^ hz;
-  }
-};
-
 class Planner {
  private:
 #ifdef FULL_CONNECT

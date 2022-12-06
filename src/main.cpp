@@ -5,7 +5,7 @@
 #include "chrono"
 #include "matrix.h"
 #include "planner.h"
-#include "plannerDstar.hpp"
+#include "plannerDstar.h"
 #include "sensor.h"
 #include "util.h"
 #include "world.h"

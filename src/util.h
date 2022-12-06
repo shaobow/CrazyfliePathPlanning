@@ -3,10 +3,14 @@
 
 /* utility functions and useful typedefines */
 
+#include <float.h>
+
 #include <array>
 #include <cmath>
 #include <string>
 #include <vector>
+
+#define MAXDOUBLE DBL_MAX
 
 namespace CF_PLAN {
 
@@ -49,6 +53,15 @@ struct coordHash {
 };
 
 using Idx = int;
+
+struct arrayHash {
+  size_t operator()(const std::array<int, 3>& arr) const {
+    size_t hx = std::hash<int>{}(arr[0]);
+    size_t hy = std::hash<int>{}(arr[1]) << 1;
+    size_t hz = std::hash<int>{}(arr[2]) << 2;
+    return (hx ^ hy) ^ hz;
+  }
+};
 
 }  // namespace CF_PLAN
 

@@ -12,7 +12,7 @@
 #include <utility>
 #include <vector>
 
-#include "openList.hpp"
+#include "openList.h"
 #include "sensor.h"
 
 using namespace std;

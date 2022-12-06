@@ -1,14 +1,9 @@
 #ifndef NODEDSTAR_H__
 #define NODEDSTAR_H__
 
-#include <bits/stdtr1c++.h>
-#include <float.h>
-
 #include <iostream>
 #include <utility>
 #include <vector>
-
-constexpr double weight = 1.0;
 
 using namespace std;
 

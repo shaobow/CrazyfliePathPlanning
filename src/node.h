@@ -1,12 +1,11 @@
-#include <float.h>
-
 #include <cmath>
 #include <iostream>
 
-#define MAXDOUBLE DBL_MAX
-constexpr double weight = 1.0;
+#include "util.h"
 
 using namespace std;
+
+constexpr double weight = 1.0;
 
 class node {
  private:

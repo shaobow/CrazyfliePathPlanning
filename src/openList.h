@@ -2,26 +2,18 @@
 #define OPENLIST_H__
 
 #include <map>
+#include <unordered_map>
 #include <vector>
 
-#include "nodeDstar.hpp"
+#include "nodeDstar.h"
 #include "util.h"
 
 using namespace std;
 namespace CF_PLAN {
 
-struct arrayHash {
-  size_t operator()(const array<int, 3>& arr) const {
-    size_t hx = std::hash<int>{}(arr[0]);
-    size_t hy = std::hash<int>{}(arr[1]) << 1;
-    size_t hz = std::hash<int>{}(arr[2]) << 2;
-    return (hx ^ hy) ^ hz;
-  }
-};
-
 class openList {
  private:
-  map<array<int, 3>, pair<double, double>, arrayHash> pq;
+  unordered_map<array<int, 3>, pair<double, double>, arrayHash> pq;
 
   bool isSmallerKey(const pair<double, double>& lhs,
                     const pair<double, double>& rhs) {
