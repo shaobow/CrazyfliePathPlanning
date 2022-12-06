@@ -2,9 +2,10 @@
 #define OPENLIST_H__
 
 #include <map>
+#include <unordered_map>
 #include <vector>
 
-#include "nodeDstar.hpp"
+#include "nodeDstar.h"
 #include "util.h"
 
 using namespace std;
@@ -21,7 +22,7 @@ struct arrayHash {
 
 class openList {
  private:
-  map<array<int, 3>, pair<double, double>, arrayHash> pq;
+  unordered_map<array<int, 3>, pair<double, double>, arrayHash> pq;
 
   bool isSmallerKey(const pair<double, double>& lhs,
                     const pair<double, double>& rhs) {

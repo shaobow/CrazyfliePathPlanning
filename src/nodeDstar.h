@@ -2,13 +2,10 @@
 #define NODEDSTAR_H__
 
 #include <bits/stdtr1c++.h>
-#include <float.h>
 
 #include <iostream>
 #include <utility>
 #include <vector>
-
-constexpr double weight = 1.0;
 
 using namespace std;
 
@@ -53,8 +50,6 @@ class nodeDstar {
   int getY() const { return this->y; }
 
   int getZ() const { return this->z; }
-
-  array<int, 3> getCoord() const { return {this->x, this->y, this->z}; }
 
   bool operator==(const nodeDstar& cell) const {
     return this->x == cell.getX() && this->y == cell.getY() &&

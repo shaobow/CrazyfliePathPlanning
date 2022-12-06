@@ -12,17 +12,46 @@
 #include <utility>
 #include <vector>
 
-#include "nodeDstar.hpp"
-#include "openList.hpp"
+#include "openList.h"
 #include "sensor.h"
-#include "util.h"
 
 using namespace std;
 
 namespace CF_PLAN {
+#define FULL_CONNECT
+
+#ifdef FULL_CONNECT
+#define NUMOFDIRS 26
+#else
+#define NUMOFDIRS 6
+#endif
+
+#define sqrt2 1.414
+#define sqrt3 1.732
+#define cost_inf DBL_MAX
 
 class PlannerDstar {
  private:
+#ifdef FULL_CONNECT
+  // 26-connected grid
+  int dX[NUMOFDIRS] = {0,  0,  1, 0, 1,  1,  1, -1, 0,  0, -1, -1, 0,
+                       -1, -1, 1, 1, -1, -1, 1, -1, -1, 0, 0,  1,  1};
+  int dY[NUMOFDIRS] = {0,  1, 0,  1, 0,  1, 1,  0, -1, 0,  -1, 0,  -1,
+                       -1, 1, -1, 1, -1, 1, -1, 0, 1,  -1, 1,  -1, 0};
+  int dZ[NUMOFDIRS] = {1,  0, 0, 1,  1, 0,  1,  0, 0, -1, 0,  -1, -1,
+                       -1, 1, 1, -1, 1, -1, -1, 1, 0, 1,  -1, 0,  -1};
+  double cost[NUMOFDIRS] = {1,     1,     1,     sqrt2, sqrt2, sqrt2, sqrt3,
+                            1,     1,     1,     sqrt2, sqrt2, sqrt2, sqrt3,
+                            sqrt3, sqrt3, sqrt3, sqrt3, sqrt3, sqrt3, sqrt2,
+                            sqrt2, sqrt2, sqrt2, sqrt2, sqrt2};
+#else
+  // 26-connected grid
+  int dX[NUMOFDIRS] = {0, 0, 1, 0, 0, -1};
+  int dY[NUMOFDIRS] = {0, 1, 0, 0, -1, 0};
+  int dZ[NUMOFDIRS] = {1, 0, 0, -1, 0, 0};
+  double cost[NUMOFDIRS] = {1, 1, 1, 1, 1, 1};
+#endif
+
   array<int, 3> coord_goal;
   array<int, 3> coord_start;
 
@@ -35,7 +64,7 @@ class PlannerDstar {
   nodeDstar* s_last;
   Idx idx_last;
 
-  vector<nodeDstar*> solution;
+  vector<vector<double>> solution;
   vector<vector<int>> solution_grid;
 
   openList U;
@@ -59,6 +88,22 @@ class PlannerDstar {
   }
 
  public:
+  // PlannerDstar(double robot_x, double robot_y, double robot_z, double goal_x,
+  //              double goal_y, double goal_z, const std::string& file_path,
+  //              double grid_size, double margin_size)
+  //     : sensor(file_path, grid_size, margin_size) {
+  //   auto robot = sensor.convert_point(robot_x, robot_y, robot_z);
+  //   auto goal = sensor.convert_point(goal_x, goal_y, goal_z);
+
+  //   this->updateRobotPose(robot.x, robot.y, robot.z);
+
+  //   this->coord_goal = {goal.x, goal.y, goal.z};
+  //   idx_goal = U.add_node(goal_x, goal_y, goal_z);
+  //   s_goal = U.getNode(this->coord_goal);
+
+  //   solution.clear();
+  // };
+
   PlannerDstar(int robot_x, int robot_y, int robot_z, int goal_x, int goal_y,
                int goal_z) {
     this->updateRobotPose(robot_x, robot_y, robot_z);
@@ -66,6 +111,8 @@ class PlannerDstar {
     this->coord_goal = {goal_x, goal_y, goal_z};
     idx_goal = U.add_node(goal_x, goal_y, goal_z);
     s_goal = U.getNode(this->coord_goal);
+
+    solution.clear();
   };
 
   ~PlannerDstar() = default;
@@ -87,11 +134,11 @@ class PlannerDstar {
     nodeDstar* node_u = U.getNode(coord_u);
 
     if (coord_u != coord_goal) {
-      if (!is_valid(coord_u))
+      if (!sensor.is_valid(Coord(coord_u[0], coord_u[1], coord_u[2])))
         node_u->set_rhs_value(cost_inf);
       else {
-        int rhs_min = cost_inf;
-        int rhs_tmp;
+        double rhs_min = cost_inf;
+        double rhs_tmp;
 
         for (int dir = 0; dir < NUMOFDIRS; dir++) {
           int succX = coord_u[0] + dX[dir];
@@ -169,7 +216,8 @@ class PlannerDstar {
     computeShortestPath();
 
     vector<Coord> Coord_updated;
-    array<int, 3> coord_updated_temp;
+    array<int, 3> coord_updated;
+    array<int, 3> coord_next;
     while (coord_start != coord_goal) {
       /* if(g(s_start) == inf) then there is no known path */
       if (s_start->get_g_value() == DBL_MAX) {
@@ -178,17 +226,48 @@ class PlannerDstar {
       }
 
       // check if any edge cost changes
-      Coord_updated = sensor.update_collision_world(Coord(coord_start));
-      if (Coord_updated.size() != 0) {
-        km += s_last->calc_h_value(s_start);
-        update_s_last_2_s_start();
+      // Coord_updated = sensor.update_collision_world(
+      //     Coord(coord_start[0], coord_start[1], coord_start[2]));
+      // if (Coord_updated.size() != 0) {
+      //   km += s_last->calc_h_value(s_start);
+      //   update_s_last_2_s_start();
 
-        for (auto itr : Coord_updated) {
-          coord_updated_temp = U.node_list
-        }
-      }
+      //   for (auto itr : Coord_updated) {
+      //     coord_updated = {itr.x, itr.y, itr.z};
+      //     updateVertex(coord_updated);
+      //   }
+      //   computeShortestPath();
+      // }
 
       // move coord_start to coord_next
+      if (sensor.is_valid(
+              Coord(coord_start[0], coord_start[1], coord_start[2]))) {
+        array<int, 3> coord_succ_min;
+        double min_cost_and_g = DBL_MAX;
+        double min_tmp;
+
+        int succX;
+        int succY;
+        int succZ;
+
+        for (int dir = 0; dir < NUMOFDIRS; dir++) {
+          succX = coord_start[0] + dX[dir];
+          succY = coord_start[1] + dY[dir];
+          succZ = coord_start[2] + dZ[dir];
+
+          if (sensor.is_valid(Coord(succX, succY, succZ))) {
+            min_tmp =
+                cost[dir] + U.getNode({succX, succY, succZ})->get_g_value();
+
+            if (min_tmp < min_cost_and_g) {
+              min_cost_and_g = min_tmp;
+              coord_succ_min = {succX, succY, succZ};
+            }
+          }
+        }
+
+        update_s_start(coord_succ_min);
+      }
     }
   }
 
@@ -198,25 +277,31 @@ class PlannerDstar {
     s_last = U.getNode(coord_start);
   }
 
-  void mode_s_start() {}
-
-  void backTrack(nodeDstar* s_current) {
-    auto curr = s_current;
-    solution.clear();
-
-    solution_grid.clear();
-
-    while (curr->get_back_ptr() != nullptr) {
-      solution.push_back(curr);
-      curr = curr->get_back_ptr();
-
-      vector<int> xyz{curr->getX(), curr->getY(), curr->getZ()};
-      solution_grid.push_back(xyz);
-    }
-    solution.push_back(curr);
-
-    vector<int> xyz{curr->getX(), curr->getY(), curr->getZ()};
+  void update_s_start(array<int, 3>& coord_new) {
+    vector<int> xyz{coord_new[0], coord_new[1], coord_new[2]};
     solution_grid.push_back(xyz);
+    coord_start = coord_new;
+    idx_start = U.umap[coord_start];
+    s_start = U.getNode(coord_start);
+  }
+
+  // void backTrack(nodeDstar* s_current) {
+  //   auto curr = s_current;
+  //   solution.clear();
+
+  //   while (curr->get_back_ptr() != nullptr) {
+  //     curr = curr->get_back_ptr();
+
+  //     Coord xyz_idx(curr->getX(), curr->getY(), curr->getZ());
+  //     solution.push_back(sensor.convert_idx(xyz_idx));
+  //   }
+  // }
+
+  void printPath() {
+    int i = 0;
+    for (auto pt : solution) {
+      cout << pt[0] << "," << pt[1] << "," << pt[2] << "\n";
+    }
   }
 
   vector<vector<int>> getPath() { return this->solution_grid; }

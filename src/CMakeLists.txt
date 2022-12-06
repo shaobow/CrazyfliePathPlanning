@@ -18,7 +18,9 @@ SET(Planning_SRCS
 )
 
 SET(Planning_HDRS
-    planner.h
+    plannerDstar.h
+    openList.h
+    nodeDstar.h
     sensor.h
     world.h
     util.h
