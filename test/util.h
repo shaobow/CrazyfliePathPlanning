@@ -12,6 +12,18 @@
 
 #define MAXDOUBLE DBL_MAX
 
+#define FULL_CONNECT
+
+#ifdef FULL_CONNECT
+#define NUMOFDIRS 26
+#else
+#define NUMOFDIRS 6
+#endif
+
+#define sqrt2 1.414f
+#define sqrt3 1.732f
+#define cost_inf DBL_MAX
+
 namespace CF_PLAN {
 
 constexpr size_t BOUND_SIZE = 6;

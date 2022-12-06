@@ -1,7 +1,7 @@
 #include <iostream>
 
 #include "chrono"
-//#include "planner.h"
+#include "planner.h"
 #include "plannerDstar.h"
 #include "sensor.h"
 #include "util.h"

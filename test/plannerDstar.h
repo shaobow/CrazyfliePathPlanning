@@ -18,17 +18,17 @@
 using namespace std;
 
 namespace CF_PLAN {
-#define FULL_CONNECT
+// #define FULL_CONNECT
 
-#ifdef FULL_CONNECT
-#define NUMOFDIRS 26
-#else
-#define NUMOFDIRS 6
-#endif
+// #ifdef FULL_CONNECT
+// #define NUMOFDIRS 26
+// #else
+// #define NUMOFDIRS 6
+// #endif
 
-#define sqrt2 1.414f
-#define sqrt3 1.732f
-#define cost_inf DBL_MAX
+// #define sqrt2 1.414f
+// #define sqrt3 1.732f
+// #define cost_inf DBL_MAX
 
 class PlannerDstar {
  private:
@@ -102,17 +102,6 @@ class PlannerDstar {
 
     solution.clear();
   };
-
-  // PlannerDstar(int robot_x, int robot_y, int robot_z, int goal_x, int goal_y,
-  //              int goal_z) {
-  //   this->updateRobotPose(robot_x, robot_y, robot_z);
-
-  //   this->coord_goal = {goal_x, goal_y, goal_z};
-  //   s_goal = U.getNode(this->coord_goal);
-  //   idx_goal = U.umap[coord_goal];
-
-  //   solution.clear();
-  // };
 
   ~PlannerDstar() = default;
 
@@ -207,10 +196,10 @@ class PlannerDstar {
       node_u = U.getNode(coord_u);
     }
 
-    // cout << "exit cond 1: " << isSmallerKey(key_u, calculateKey(coord_start))
-    //      << endl;
-    // cout << "exit cond 2: "
-    //      << (s_start->get_rhs_value() != s_start->get_g_value()) << endl;
+    cout << "exit cond 1: " << isSmallerKey(key_u, calculateKey(coord_start))
+         << endl;
+    cout << "exit cond 2: "
+         << (s_start->get_rhs_value() != s_start->get_g_value()) << endl;
   }
 
   void initialize() {
@@ -221,7 +210,9 @@ class PlannerDstar {
   void plan() {
     update_s_last_2_s_start();
     initialize();
+    cout << "done initiazlie()" << endl;
     computeShortestPath();
+    cout << "1st computeShortestPath()" << endl;
 
     vector<Coord> Coord_updated;
     array<int, 3> coord_updated;
@@ -233,19 +224,19 @@ class PlannerDstar {
         return;
       }
 
-      // check if any edge cost changes
-      // Coord_updated = sensor.update_collision_world(
-      //     Coord(coord_start[0], coord_start[1], coord_start[2]));
-      // if (Coord_updated.size() != 0) {
-      //   km += s_last->calc_h_value(s_start);
-      //   update_s_last_2_s_start();
+      // check if any edge cost changes Coord_updated =
+      sensor.update_collision_world(
+          Coord(coord_start[0], coord_start[1], coord_start[2]));
+      if (Coord_updated.size() != 0) {
+        km += s_last->calc_h_value(s_start);
+        update_s_last_2_s_start();
 
-      //   for (auto itr : Coord_updated) {
-      //     coord_updated = {itr.x, itr.y, itr.z};
-      //     updateVertex(coord_updated);
-      //   }
-      //   computeShortestPath();
-      // }
+        for (auto itr : Coord_updated) {
+          coord_updated = {itr.x, itr.y, itr.z};
+          updateVertex(coord_updated);
+        }
+        computeShortestPath();
+      }
 
       // move coord_start to coord_next
       if (sensor.is_valid(
