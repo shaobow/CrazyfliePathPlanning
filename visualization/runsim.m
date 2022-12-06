@@ -4,7 +4,7 @@ clc;
 addpath(genpath('./'));
 addpath(genpath('../bin/'))
 
-map_id = 4;
+map_id = 3;
 use_dstar = 1;
 astar_path = cell(1);
 dstar_path = cell(1);
