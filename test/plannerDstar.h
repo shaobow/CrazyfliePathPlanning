@@ -87,6 +87,8 @@ class PlannerDstar {
   }
 
  public:
+  int num_of_replan = 0;
+
   PlannerDstar(double robot_x, double robot_y, double robot_z, double goal_x,
                double goal_y, double goal_z, const std::string& file_path,
                double grid_size, double margin_size)
@@ -121,6 +123,11 @@ class PlannerDstar {
   void updateVertex(array<int, 3> coord_u) {
     nodeDstar* node_u = U.getNode(coord_u);
 
+    if (num_of_replan > 0)
+      cout << "updateVertex: " << coord_u[0] << ", " << coord_u[1] << ", "
+           << coord_u[2] << "\t(" << node_u->get_key().first << ", "
+           << node_u->get_key().second << ")";
+
     if (coord_u != coord_goal) {
       if (!sensor.is_valid(Coord(coord_u[0], coord_u[1], coord_u[2])))
         node_u->set_rhs_value(cost_inf);
@@ -150,6 +157,11 @@ class PlannerDstar {
 
     if (node_u->get_g_value() != node_u->get_rhs_value())
       U.insert(coord_u, calculateKey(coord_u));
+
+    if (num_of_replan > 0)
+      cout << " --->" << coord_u[0] << ", " << coord_u[1] << ", " << coord_u[2]
+           << "\t(" << node_u->get_key().first << ", "
+           << node_u->get_key().second << ")" << endl;
   }
 
   void computeShortestPath() {
@@ -226,12 +238,18 @@ class PlannerDstar {
       // check if any edge cost changes Coord_updated =
       Coord_updated = sensor.update_collision_world(
           Coord(coord_start[0], coord_start[1], coord_start[2]));
-      if (Coord_updated.size() != 0) {
+      if (Coord_updated.size() != 0 && num_of_replan < 1) {
+        num_of_replan++;
+
         km += s_last->calc_h_value(s_start);
         update_s_last_2_s_start();
 
         for (auto itr : Coord_updated) {
           coord_updated = {itr.x, itr.y, itr.z};
+
+          cout << "detect obstacle @ " << itr.x << ", " << itr.y << ", "
+               << itr.z << endl;
+
           updateVertex(coord_updated);
         }
 
@@ -240,34 +258,33 @@ class PlannerDstar {
       }
 
       // move coord_start to coord_next
-      if (sensor.is_valid(
-              Coord(coord_start[0], coord_start[1], coord_start[2]))) {
-        array<int, 3> coord_succ_min;
-        double min_cost_and_g = DBL_MAX;
-        double min_tmp;
+      // if (sensor.is_valid(
+      //         Coord(coord_start[0], coord_start[1], coord_start[2]))) {
+      array<int, 3> coord_succ_min;
+      double min_cost_and_g = DBL_MAX;
+      double min_tmp;
 
-        int succX;
-        int succY;
-        int succZ;
+      int succX;
+      int succY;
+      int succZ;
 
-        for (int dir = 0; dir < NUMOFDIRS; dir++) {
-          succX = coord_start[0] + dX[dir];
-          succY = coord_start[1] + dY[dir];
-          succZ = coord_start[2] + dZ[dir];
+      for (int dir = 0; dir < NUMOFDIRS; dir++) {
+        succX = coord_start[0] + dX[dir];
+        succY = coord_start[1] + dY[dir];
+        succZ = coord_start[2] + dZ[dir];
 
-          if (sensor.is_valid(Coord(succX, succY, succZ))) {
-            min_tmp =
-                cost[dir] + U.getNode({succX, succY, succZ})->get_g_value();
+        if (sensor.is_valid(Coord(succX, succY, succZ))) {
+          min_tmp = cost[dir] + U.getNode({succX, succY, succZ})->get_g_value();
 
-            if (min_tmp < min_cost_and_g) {
-              min_cost_and_g = min_tmp;
-              coord_succ_min = {succX, succY, succZ};
-            }
+          if (min_tmp < min_cost_and_g) {
+            min_cost_and_g = min_tmp;
+            coord_succ_min = {succX, succY, succZ};
           }
         }
-
-        update_s_start(coord_succ_min);
       }
+
+      update_s_start(coord_succ_min);
+      // }
     }
 
     cout << "**** REACH GOAL POSE ****" << endl;
@@ -289,18 +306,6 @@ class PlannerDstar {
     idx_start = U.umap[coord_start];
     s_start = U.getNode(coord_start);
   }
-
-  // void backTrack(nodeDstar* s_current) {
-  //   auto curr = s_current;
-  //   solution.clear();
-
-  //   while (curr->get_back_ptr() != nullptr) {
-  //     curr = curr->get_back_ptr();
-
-  //     Coord xyz_idx(curr->getX(), curr->getY(), curr->getZ());
-  //     solution.push_back(sensor.convert_idx(xyz_idx));
-  //   }
-  // }
 
   void printPath() {
     int i = 0;
