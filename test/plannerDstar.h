@@ -239,11 +239,12 @@ class PlannerDstar {
       Coord_updated = sensor.update_collision_world(
           Coord(coord_start[0], coord_start[1], coord_start[2]));
       if (Coord_updated.size() != 0 && num_of_replan < 1) {
-        num_of_replan++;
-
         km += s_last->calc_h_value(s_start);
         update_s_last_2_s_start();
 
+        cout << "\n\n\n\n----------------------------------------" << endl;
+        num_of_replan++;
+        U.flag_OL = 1;
         for (auto itr : Coord_updated) {
           coord_updated = {itr.x, itr.y, itr.z};
 
@@ -252,6 +253,8 @@ class PlannerDstar {
 
           updateVertex(coord_updated);
         }
+
+        U.flag_OL = 0;
 
         computeShortestPath();
         cout << "**** RE-PLANED ****" << endl;

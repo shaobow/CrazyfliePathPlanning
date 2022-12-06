@@ -122,12 +122,19 @@ class openList {
     if (umap.count(coord_u) == 0) {
       idx_u = add_node(coord_u[0], coord_u[1], coord_u[2]);
       umap[coord_u] = idx_u;
+
+      if (flag_OL == 1) cout << "doesn't exit";
     } else {
       idx_u = umap[coord_u];
+      if (flag_OL == 1) cout << "exit";
     }
+
+    if (flag_OL == 1) cout << "\t.getNode() idx_u: " << idx_u << endl;
 
     return node_list[idx_u].get();
   }
+
+  int flag_OL = 0;
 };  // namespace CF_PLAN
 }  // namespace CF_PLAN
 #endif
