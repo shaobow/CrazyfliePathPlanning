@@ -1,22 +1,11 @@
-#include <mex.h>
-
 #include <iostream>
 
 #include "chrono"
-#include "matrix.h"
 #include "planner.h"
 #include "plannerDstar.h"
 #include "sensor.h"
 #include "util.h"
 #include "world.h"
-
-/* Input Arguments */
-#define MAP_ID prhs[0]
-#define GRID_SIZE prhs[1]
-#define MARGIN_SIZE prhs[2]
-
-/* Output Arguments */
-#define PATH plhs[0]
 
 namespace {
 const std::string MAP1_PATH = "./maps/map1.txt";
@@ -24,7 +13,7 @@ const std::string MAP2_PATH = "./maps/map2.txt";
 const std::string MAP3_PATH = "./maps/map3.txt";
 }  // namespace
 
-vector<vector<double>> plan(int map_id, double grid_size, double margin_size) {
+vector<vector<int>> plan(int map_id, double grid_size, double margin_size) {
   std::string map_path;
   double robot_x, robot_y, robot_z;
   double goal_x, goal_y, goal_z;
@@ -75,31 +64,11 @@ vector<vector<double>> plan(int map_id, double grid_size, double margin_size) {
   return solution;
 }
 
-/* MEX entry function */
-void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
-  /* argument check */
-  if (nrhs != 3) {
-    mexErrMsgIdAndTxt("MATLAB:inputmismatch", "Input arguments must be 3!");
-  }
-  if (nlhs != 1) {
-    mexErrMsgIdAndTxt("MATLAB:outputmismatch", "Output arguments must be 1!");
-  }
-
-  int map_id = (int)mxGetScalar(MAP_ID);
-  double grid_size = mxGetScalar(GRID_SIZE);
-  double margin_size = mxGetScalar(MARGIN_SIZE);
+int main() {
+  int map_id = 3;
+  double grid_size = 0.2;
+  double margin_size = 0.2;
 
   auto solution = plan(map_id, grid_size, margin_size);
-  mwSize m = solution.size();
-  mwSize n = 3;
-  PATH = mxCreateDoubleMatrix(m, n, mxREAL);
-  double *path_ptr = mxGetPr(PATH);
-
-  for (int i = 0; i < m; i++) {
-    for (int j = 0; j < n; j++) {
-      path_ptr[j * m + i] = solution[i][j];
-    }
-  }
-
-  return;
+  return 0;
 }

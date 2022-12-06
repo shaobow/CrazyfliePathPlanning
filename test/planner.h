@@ -17,16 +17,16 @@
 using namespace std;
 
 namespace CF_PLAN {
-#define FULL_CONNECT
+// #define FULL_CONNECT
 
-#ifdef FULL_CONNECT
-#define NUMOFDIRS 26
-#else
-#define NUMOFDIRS 6
-#endif
+// #ifdef FULL_CONNECT
+// #define NUMOFDIRS 26
+// #else
+// #define NUMOFDIRS 6
+// #endif
 
-#define sqrt2 1.414
-#define sqrt3 1.732
+// #define sqrt2 1.414
+// #define sqrt3 1.732
 
 class Planner {
  private:
@@ -69,7 +69,7 @@ class Planner {
   node* s_start;
   Idx start_idx;
   Idx goal_idx;
-  vector<vector<double>> solution;
+  vector<vector<int>> solution;
 
   // sensor for local map update
   Sensor sensor;
@@ -193,9 +193,12 @@ class Planner {
     while (curr->get_back_ptr() != nullptr) {
       curr = curr->get_back_ptr();
 
-      Coord xyz_idx(curr->getX(), curr->getY(), curr->getZ());
-      solution.push_back(sensor.convert_idx(xyz_idx));
+      // Coord xyz_idx(curr->getX(), curr->getY(), curr->getZ());
+      // solution.push_back(sensor.convert_idx(xyz_idx));
+      solution.push_back({curr->getX(), curr->getY(), curr->getZ()});
     }
+
+    solution.push_back({curr->getX(), curr->getY(), curr->getZ()});
   }
 
   void printPath() {
@@ -205,7 +208,7 @@ class Planner {
     }
   }
 
-  vector<vector<double>> getPath() { return this->solution; }
+  vector<vector<int>> getPath() { return this->solution; }
 };
 }  // namespace CF_PLAN
 
