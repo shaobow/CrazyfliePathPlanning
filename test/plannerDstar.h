@@ -196,10 +196,10 @@ class PlannerDstar {
       node_u = U.getNode(coord_u);
     }
 
-    cout << "exit cond 1: " << isSmallerKey(key_u, calculateKey(coord_start))
-         << endl;
-    cout << "exit cond 2: "
-         << (s_start->get_rhs_value() != s_start->get_g_value()) << endl;
+    // cout << "exit cond 1: " << isSmallerKey(key_u, calculateKey(coord_start))
+    //      << endl;
+    // cout << "exit cond 2: "
+    //      << (s_start->get_rhs_value() != s_start->get_g_value()) << endl;
   }
 
   void initialize() {
@@ -210,9 +210,8 @@ class PlannerDstar {
   void plan() {
     update_s_last_2_s_start();
     initialize();
-    cout << "done initiazlie()" << endl;
     computeShortestPath();
-    cout << "1st computeShortestPath()" << endl;
+    cout << "**** 1st computeShortestPath() ****" << endl;
 
     vector<Coord> Coord_updated;
     array<int, 3> coord_updated;
@@ -225,7 +224,7 @@ class PlannerDstar {
       }
 
       // check if any edge cost changes Coord_updated =
-      sensor.update_collision_world(
+      Coord_updated = sensor.update_collision_world(
           Coord(coord_start[0], coord_start[1], coord_start[2]));
       if (Coord_updated.size() != 0) {
         km += s_last->calc_h_value(s_start);
@@ -235,7 +234,9 @@ class PlannerDstar {
           coord_updated = {itr.x, itr.y, itr.z};
           updateVertex(coord_updated);
         }
+
         computeShortestPath();
+        cout << "**** RE-PLANED ****" << endl;
       }
 
       // move coord_start to coord_next
