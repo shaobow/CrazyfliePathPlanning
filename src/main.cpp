@@ -5,6 +5,7 @@
 #include "chrono"
 #include "matrix.h"
 #include "planner.h"
+#include "plannerDstar.hpp"
 #include "sensor.h"
 #include "util.h"
 #include "world.h"
@@ -55,8 +56,8 @@ vector<vector<double>> plan(int map_id, double grid_size, double margin_size) {
   }
 
   auto start = std::chrono::high_resolution_clock::now();
-  CF_PLAN::Planner astar(robot_x, robot_y, robot_z, goal_x, goal_y, goal_z,
-                         map_path, grid_size, margin_size);
+  CF_PLAN::Planner dstarLite(robot_x, robot_y, robot_z, goal_x, goal_y, goal_z,
+                             map_path, grid_size, margin_size);
   auto stop = std::chrono::high_resolution_clock::now();
   auto construct_time =
       std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
@@ -64,11 +65,11 @@ vector<vector<double>> plan(int map_id, double grid_size, double margin_size) {
             << " seconds to construct.\n";
 
   start = chrono::high_resolution_clock::now();
-  astar.plan();
+  dstarLite.plan();
   stop = chrono::high_resolution_clock::now();
   auto solve_time = chrono::duration_cast<chrono::milliseconds>(stop - start);
-  astar.printPath();
-  auto solution = astar.getPath();
+  dstarLite.printPath();
+  auto solution = dstarLite.getPath();
   std::cout << "Planner takes " << solve_time.count() / 1000.0
             << " seconds to find solution.\n";
   return solution;
