@@ -45,37 +45,6 @@ class openList {
 
   ~openList() = default;
 
-  // void insert(array<int, 3> u, pair<double, double> key_u) {
-  //   auto itr = pq.find(u);
-  //   Idx idx_new;
-
-  //   cout << "result: " << (itr != pq.end()) << endl;
-
-  //   if (itr != pq.end()) {
-  //     cout << "situation 3" << endl;
-  //     array<int, 3> coord_exit = itr->first;
-  //     umap[coord_exit] = idx_new;
-  //     node_list[idx_new].get()->set_key(key_u);
-
-  //     itr->second = key_u;
-  //   } else {
-  //     cout << "situation 1 or 2" << endl;
-
-  //     if (umap.count(u) == 0) {
-  //       cout << "situation 2" << endl;
-  //       idx_new = add_node(u[0], u[1], u[2]);
-  //     }
-
-  //     umap[u] = idx_new;
-  //     node_list[idx_new].get()->set_key(key_u);
-
-  //     cout << "idx_new key: " << node_list[idx_new].get()->get_key().first
-  //          << ", " << node_list[idx_new].get()->get_key().second << endl;
-
-  //     pq.insert(make_pair(u, key_u));
-  //   }
-  // }
-
   void insert(array<int, 3> u, pair<double, double> key_u) {
     auto itr = pq.find(u);
     Idx idx_new;
@@ -91,7 +60,7 @@ class openList {
       if (umap.count(u) == 0) {
         // cout << "situation 2" << endl;
 
-        idx_new = add_node(u[0], u[1], u[2]);  // in node_list
+        idx_new = add_node(u[0], u[1], u[2]);
         umap[u] = idx_new;
       } else {
         // cout << "situation 1" << endl;

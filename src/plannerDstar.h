@@ -172,8 +172,6 @@ class PlannerDstar {
     pair<double, double> k_old;    //
     pair<double, double> k_u_new;  //
 
-    int i = 0;
-
     while (isSmallerKey(key_u, calculateKey(coord_start)) ||
            s_start->get_rhs_value() != s_start->get_g_value()) {
       k_old = key_u;
@@ -205,28 +203,23 @@ class PlannerDstar {
         updateVertex(coord_u);
       }
 
-      cout << i << endl;
-      i++;
-
       coord_u = U.top();
       key_u = U.topKey(coord_u);
       node_u = U.getNode(coord_u);
     }
 
-    cout << "exit cond 1: " << isSmallerKey(key_u, calculateKey(coord_start))
-         << endl;
-    cout << "exit cond 2: "
-         << (s_start->get_rhs_value() != s_start->get_g_value()) << endl;
+    // cout << "exit cond 1: " << isSmallerKey(key_u, calculateKey(coord_start))
+    //      << endl;
+    // cout << "exit cond 2: "
+    //      << (s_start->get_rhs_value() != s_start->get_g_value()) << endl;
   }
 
   void initialize() {
     s_goal->set_rhs_value(0);
     U.insert(coord_goal, calculateKey(coord_goal));
-    cout << "in initialize" << endl;
   }
 
   void plan() {
-    cout << "in planning" << endl;
     update_s_last_2_s_start();
     initialize();
     computeShortestPath();
