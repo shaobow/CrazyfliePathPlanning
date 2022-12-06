@@ -1,7 +1,7 @@
 #include <iostream>
 
 #include "chrono"
-#include "planner.h"
+//#include "planner.h"
 #include "plannerDstar.h"
 #include "sensor.h"
 #include "util.h"
@@ -13,7 +13,7 @@ const std::string MAP2_PATH = "./maps/map2.txt";
 const std::string MAP3_PATH = "./maps/map3.txt";
 }  // namespace
 
-vector<vector<double>> plan(int map_id, double grid_size, double margin_size) {
+vector<vector<int>> plan(int map_id, double grid_size, double margin_size) {
   std::string map_path;
   double robot_x, robot_y, robot_z;
   double goal_x, goal_y, goal_z;

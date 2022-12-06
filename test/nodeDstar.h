@@ -1,9 +1,13 @@
 #ifndef NODEDSTAR_H__
 #define NODEDSTAR_H__
 
+#include <bits/stdtr1c++.h>
+
 #include <iostream>
 #include <utility>
 #include <vector>
+
+#define weight 5.0f
 
 using namespace std;
 
@@ -49,8 +53,6 @@ class nodeDstar {
 
   int getZ() const { return this->z; }
 
-  array<int, 3> getCoord() const { return {this->x, this->y, this->z}; }
-
   bool operator==(const nodeDstar& cell) const {
     return this->x == cell.getX() && this->y == cell.getY() &&
            this->z == cell.getZ();
@@ -73,10 +75,11 @@ class nodeDstar {
   void set_back_ptr(nodeDstar* ptr) { this->backpointer = ptr; }
 
   double calc_h_value(nodeDstar* n_start) {
-    return sqrt(pow(n_start->getX() - this->x, 2) +
-                pow(n_start->getY() - this->y, 2) +
-                pow(n_start->getZ() - this->z, 2));  // Euclidean distance in 3D
-                                                     // this->h_value = 0;
+    return weight * sqrt(pow(n_start->getX() - this->x, 2) +
+                         pow(n_start->getY() - this->y, 2) +
+                         pow(n_start->getZ() - this->z,
+                             2));  // Euclidean distance in 3D
+                                   // this->h_value = 0;
   }
 
   double get_g_value() const { return this->g_value; }
