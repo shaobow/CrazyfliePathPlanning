@@ -9,9 +9,9 @@ Sensor::Sensor(const std::string& file_path, double grid_size,
 std::vector<Coord> Sensor::update_collision_world(const Coord& robot_state) {
   // bool flag = false;
   std::vector<Coord> collision_list = {};
-  for (auto i = robot_state.x - range; i < robot_state.x + range; i++) {
-    for (auto j = robot_state.y - range; j < robot_state.y + range; j++) {
-      for (auto k = robot_state.z - range; k < robot_state.z + range; k++) {
+  for (auto i = robot_state.x - range; i <= robot_state.x + range; i++) {
+    for (auto j = robot_state.y - range; j <= robot_state.y + range; j++) {
+      for (auto k = robot_state.z - range; k <= robot_state.z + range; k++) {
         Coord temp(i, j, k);
         if (static_world.is_ocp(temp)) {
           if (partial_map.count(temp) == 0) {
