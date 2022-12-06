@@ -8,7 +8,6 @@
 #include <utility>
 #include <vector>
 
-#define MAXDOUBLE DBL_MAX
 constexpr double weight = 1.0;
 
 using namespace std;
@@ -29,10 +28,13 @@ class nodeDstar {
   // int time;
 
   // D* Lite search
-  double g_value = MAXDOUBLE;
-  double h_value = MAXDOUBLE;
-  double rhs_value;
-  pair<double, double> key;  // k(s) = [f(s); g*(s)]
+  double g_value = DBL_MAX;
+  double rhs_value = DBL_MAX;  // default: rhs(s) = g(s) = inf.
+  pair<double, double> key;    // k(s) = [f(s); g*(s)]
+
+  double cost;
+
+  double h_value = -1;  // -1: h-value hasn't set
 
   // backtracking
   nodeDstar* backpointer = nullptr;  // backward from GOAL
@@ -42,9 +44,6 @@ class nodeDstar {
     this->x = x;
     this->y = y;
     this->z = z;
-
-    this->rhs_value =
-        this->g_value;  // default: for all s within S, rhs(s) = g(s) = inf.
   }
 
   ~nodeDstar() = default;
@@ -55,21 +54,14 @@ class nodeDstar {
 
   int getZ() const { return this->z; }
 
-  bool operator==(const nodeDstar& rhs) const {
-    return this->x == rhs.getX() && this->y == rhs.getY() &&
-           this->z == rhs.getZ();
+  array<int, 3> getCoord() const { return {this->x, this->y, this->z}; }
+
+  bool operator==(const nodeDstar& cell) const {
+    return this->x == cell.getX() && this->y == cell.getY() &&
+           this->z == cell.getZ();
   }
 
   void set_g_value(double g_value) { this->g_value = g_value; }
-
-  double estimate_h_value(nodeDstar* n_start) {
-    this->h_value = sqrt(
-        pow(n_start->getX() - this->x, 2) + pow(n_start->getY() - this->y, 2) +
-        pow(n_start->getZ() - this->z, 2));  // Euclidean distance in 3D
-                                             // this->h_value = 0;
-
-    return this->h_value;
-  }
 
   void set_rhs_value(double rhs_value) { this->rhs_value = rhs_value; }
 
@@ -78,11 +70,21 @@ class nodeDstar {
     this->key.second = k2;
   }
 
+  void set_key(pair<double, double> k) {
+    this->key.first = k.first;
+    this->key.second = k.second;
+  }
+
   void set_back_ptr(nodeDstar* ptr) { this->backpointer = ptr; }
 
-  double get_g_value() const { return this->g_value; }
+  double calc_h_value(nodeDstar* n_start) {
+    return sqrt(pow(n_start->getX() - this->x, 2) +
+                pow(n_start->getY() - this->y, 2) +
+                pow(n_start->getZ() - this->z, 2));  // Euclidean distance in 3D
+                                                     // this->h_value = 0;
+  }
 
-  double get_h_value() const { return this->h_value; }
+  double get_g_value() const { return this->g_value; }
 
   double get_rhs_value() const { return this->rhs_value; }
 
@@ -92,6 +94,17 @@ class nodeDstar {
 
   void print_node() const {
     cout << "node: " << this->x << ", " << this->y << ", " << this->z << endl;
+  }
+
+  bool isSmallerKey(const pair<double, double>& rhs) {
+    if (this->key.first < rhs.first) return true;
+    if (this->key.first == rhs.first && this->key.second < rhs.second)
+      return true;
+    return false;
+  }
+
+  bool isEqualKey(const pair<double, double>& rhs) {
+    return this->key.first == rhs.first && this->key.second == rhs.second;
   }
 };
 

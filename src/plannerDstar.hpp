@@ -10,8 +10,10 @@
 #include <queue>
 #include <unordered_set>
 #include <utility>
+#include <vector>
 
 #include "nodeDstar.hpp"
+#include "openList.hpp"
 #include "sensor.h"
 #include "util.h"
 
@@ -19,174 +21,184 @@ using namespace std;
 
 namespace CF_PLAN {
 
-struct arrayHash {
-  size_t operator()(const array<int, 3>& arr) const {
-    size_t hx = std::hash<int>{}(arr[0]);
-    size_t hy = std::hash<int>{}(arr[1]) << 1;
-    size_t hz = std::hash<int>{}(arr[2]) << 2;
-    return (hx ^ hy) ^ hz;
-  }
-};
-
 class PlannerDstar {
  private:
-  // goal info
-  int goalposeX;
-  int goalposeY;
-  int goalposeZ;
+  array<int, 3> coord_goal;
+  array<int, 3> coord_start;
 
-  // current info
-  int robotposeX;
-  int robotposeY;
-  int robotposeZ;
-
-  // A* search
-  unordered_map<array<int, 3>, int, arrayHash>
-      umap;  // use coord. to find idx of ptr address
-
-  vector<unique_ptr<nodeDstar>> node_list;
   nodeDstar* s_goal;
   nodeDstar* s_start;
   Idx idx_start;
   Idx idx_goal;
+
+  array<int, 3> coord_last;
+  nodeDstar* s_last;
+  Idx idx_last;
+
   vector<nodeDstar*> solution;
   vector<vector<int>> solution_grid;
 
-  Idx idx_last;
+  openList U;
   double km = 0.0;
 
   // sensor for local map update
   Sensor sensor;
 
-  // check if successor state is valid
-  bool isValid(const Coord& robot_state);
-  bool isUpdate(const Coord& robot_state);
-
-  int add_node(int x, int y, int z) {
-    auto temp = make_unique<nodeDstar>(x, y, z);
-    node_list.push_back(move(temp));
-    return node_list.size() - 1;
-  }
-
- public:
-  PlannerDstar(int robot_x, int robot_y, int robot_z, int goal_x, int goal_y,
-               int goal_z) {
-    this->updateRobotPose(robot_x, robot_y, robot_z);
-    this->setGoalPose(goal_x, goal_y, goal_z);
-
-    idx_goal = add_node(goal_x, goal_y, goal_z);
-    s_goal = node_list[idx_goal].get();
-    umap[{goal_x, goal_y, goal_z}] = idx_goal;
-
-    idx_start = add_node(this->robotposeX, this->robotposeY, this->robotposeZ);
-    s_start = node_list[idx_start].get();
-    umap[{robotposeX, robotposeY, robotposeZ}] = idx_start;
-  }
-
-  ~PlannerDstar() = default;
-
-  void setGoalPose(int goal_x, int goal_y, int goal_z) {
-    this->goalposeX = goal_x;
-    this->goalposeY = goal_y;
-    this->goalposeZ = goal_z;
-  }
-
-  void updateRobotPose(int robot_x, int robot_y, int robot_z) {
-    this->robotposeX = robot_x;
-    this->robotposeY = robot_y;
-    this->robotposeZ = robot_z;
-  }
-
-  // int ifReachStart(nodeDstar* currentPose) {
-  //   return this->robotposeX == currentPose->getX() &&
-  //          this->robotposeY == currentPose->getY() &&
-  //          this->robotposeZ == currentPose->getZ();
-  // }
-
-  // D* Lite Utility Functions
-  bool ifSmallerKey(const pair<double, double>& lhs,
+  bool isSmallerKey(const pair<double, double>& lhs,
                     const pair<double, double>& rhs) {
     if (lhs.first < rhs.first) return true;
     if (lhs.first == rhs.first && lhs.second < rhs.second) return true;
     return false;
   }
 
-  bool ifEqualKey(const pair<double, double>& lhs,
-                  const pair<double, double>& rhs) {
-    return lhs.first == rhs.first && lhs.second == rhs.second;
+  friend bool operator!=(const array<int, 3>& s1, const array<int, 3>& s2) {
+    if (s1[0] != s2[0]) return true;
+    if (s1[1] != s2[1]) return true;
+    if (s1[2] != s2[2]) return true;
+    return false;
+  }
+
+ public:
+  PlannerDstar(int robot_x, int robot_y, int robot_z, int goal_x, int goal_y,
+               int goal_z) {
+    this->updateRobotPose(robot_x, robot_y, robot_z);
+
+    this->coord_goal = {goal_x, goal_y, goal_z};
+    idx_goal = U.add_node(goal_x, goal_y, goal_z);
+    s_goal = U.getNode(this->coord_goal);
+  };
+
+  ~PlannerDstar() = default;
+
+  void updateRobotPose(int robot_x, int robot_y, int robot_z) {
+    this->coord_start = {robot_x, robot_y, robot_z};
+    idx_start = U.add_node(robot_x, robot_y, robot_z);
+    s_start = U.getNode(this->coord_start);
   }
 
   // TODO: implement D* Lite
-  pair<double, double> calculateKey(const Idx& idx_s) {
-    auto s = node_list[idx_s].get();
-    int min_g_and_rhs = std::min(s->get_g_value(), s->get_rhs_value());
-    s->set_key(min_g_and_rhs + s->estimate_h_value(s_start) + km,
-               min_g_and_rhs);
-    return s->get_key();
+  pair<double, double> calculateKey(array<int, 3>& coord_u) {
+    nodeDstar* node_u = U.getNode(coord_u);
+    int min_g_rhs = std::min(node_u->get_g_value(), node_u->get_rhs_value());
+    return make_pair(min_g_rhs + node_u->calc_h_value(s_start), min_g_rhs);
   }
 
-  void computePath() {
-    auto compr = [this](const Idx& lhs, const Idx& rhs) {
-      auto k1 = node_list[lhs]->get_key();
-      auto k2 = node_list[rhs]->get_key();
+  void updateVertex(array<int, 3> coord_u) {
+    nodeDstar* node_u = U.getNode(coord_u);
 
-      if (k1.first > k2.first) return true;
-      if (k1.first == k2.first && k1.second > k2.second) return true;
-      return false;
-    };
+    if (coord_u != coord_goal) {
+      if (!is_valid(coord_u))
+        node_u->set_rhs_value(cost_inf);
+      else {
+        int rhs_min = cost_inf;
+        int rhs_tmp;
 
-    // initialize()
-    Idx idx_last = idx_start;
-    priority_queue<Idx, vector<Idx>, decltype(compr)> openList(compr);
+        for (int dir = 0; dir < NUMOFDIRS; dir++) {
+          int succX = coord_u[0] + dX[dir];
+          int succY = coord_u[1] + dY[dir];
+          int succZ = coord_u[2] + dZ[dir];
+
+          if (sensor.is_valid(Coord(succX, succY, succZ))) {
+            rhs_tmp =
+                cost[dir] + U.getNode({succX, succY, succZ})->get_g_value();
+
+            if (rhs_tmp < rhs_min) {
+              rhs_min = rhs_tmp;
+            }
+          }
+        }
+        node_u->set_rhs_value(rhs_min);
+      }
+    }
+
+    if (U.isInOpenList(coord_u)) U.remove(coord_u);
+
+    if (node_u->get_g_value() != node_u->get_rhs_value())
+      U.insert(coord_u, calculateKey(coord_u));
+  }
+
+  void computeShortestPath() {
+    array<int, 3> coord_u = U.top();
+    pair<double, double> key_u = U.topKey(coord_u);
+    pair<double, double> k_old;
+
+    pair<double, double> k_u_new;
+    nodeDstar* node_u = U.getNode(coord_u);
+
+    while (isSmallerKey(key_u, calculateKey(coord_start)) ||
+           s_start->get_rhs_value() != s_start->get_g_value()) {
+      k_old = key_u;
+      U.pop(coord_u);
+
+      k_u_new = calculateKey(coord_u);
+      if (isSmallerKey(k_old, k_u_new)) {
+        U.insert(coord_u, k_u_new);
+      } else if (node_u->get_g_value() > node_u->get_rhs_value()) {
+        node_u->set_g_value(node_u->get_rhs_value());
+
+        for (int dir = 0; dir < NUMOFDIRS; dir++) {
+          int predX = coord_u[0] + dX[dir];
+          int predY = coord_u[1] + dY[dir];
+          int predZ = coord_u[2] + dZ[dir];
+
+          updateVertex({predX, predY, predZ});
+        }
+      } else {
+        node_u->set_g_value(DBL_MAX);
+
+        for (int dir = 0; dir < NUMOFDIRS; dir++) {
+          int predX = coord_u[0] + dX[dir];
+          int predY = coord_u[1] + dY[dir];
+          int predZ = coord_u[2] + dZ[dir];
+
+          updateVertex({predX, predY, predZ});
+        }
+        updateVertex(coord_u);
+      }
+    }
+  }
+
+  void initialize() {
     s_goal->set_rhs_value(0);
-    calculateKey(idx_goal);
-    openList.push(idx_goal);
+    U.insert(coord_goal, calculateKey(coord_goal));
+  }
 
-    // computeShortestPath()
-    nodeDstar* s_current = node_list[openList.top()].get();
-    pair<double, double> k_old = s_current->get_key();
+  void plan() {
+    update_s_last_2_s_start();
+    initialize();
+    computeShortestPath();
 
-    while (openList.size() != 0) {
-      if (*s_current == *s_start) {
-        cout << "** FOUND PATH **" << endl;
-        backTrack(s_current);
-        return;
+    vector<Coord> Coord_updated;
+    array<int, 3> coord_updated_temp;
+    while (coord_start != coord_goal) {
+      /* if(g(s_start) == inf) then there is no known path */
+      if (s_start->get_g_value() == DBL_MAX) {
+        cout << "**** NO KNOWN PATH ****" << endl;
+        break;
       }
 
-      openList.pop();
+      // check if any edge cost changes
+      Coord_updated = sensor.update_collision_world(Coord(coord_start));
+      if (Coord_updated.size() != 0) {
+        km += s_last->calc_h_value(s_start);
+        update_s_last_2_s_start();
 
-      for (int dir = 0; dir < NUMOFDIRS; dir++) {
-        int newX = s_current->getX() + dX[dir];
-        int newY = s_current->getY() + dY[dir];
-        int newZ = s_current->getZ() + dZ[dir];
-
-        if (sensor.is_valid(Coord((btScalar)(newX + 0.5) * CF_size,
-                                  (btScalar)(newY + 0.5) * CF_size,
-                                  (btScalar)(newZ + 0.5) * CF_size))) {
-          // get unique node*
-          Idx new_idx;
-          if (umap.count({newX, newY, newZ}) == 0) {
-            new_idx = add_node(newX, newY, newZ);
-            umap[{newX, newY, newZ}] = new_idx;
-          } else {
-            new_idx = umap[{newX, newY, newZ}];
-          }
-          nodeDstar* s_pred = node_list[new_idx].get();
-
-          if (s_pred->get_g_value() > (cost[dir] + s_current->get_g_value())) {
-            s_pred->set_g_value(cost[dir] + s_current->get_g_value());
-            s_pred->estimate_h_value(s_start);
-            s_pred->set_f_value();
-            s_pred->set_back_ptr(s_current);
-            openList.push(new_idx);
-          }
+        for (auto itr : Coord_updated) {
+          coord_updated_temp = U.node_list
         }
       }
 
-      s_current = node_list[openList.top()].get();
-      // s_current->print_node();
+      // move coord_start to coord_next
     }
   }
+
+  void update_s_last_2_s_start() {
+    coord_last = coord_start;
+    idx_last = U.umap[coord_start];
+    s_last = U.getNode(coord_start);
+  }
+
+  void mode_s_start() {}
 
   void backTrack(nodeDstar* s_current) {
     auto curr = s_current;
