@@ -4,7 +4,7 @@
 #include <utility>
 #include <vector>
 
-#define weight 2.0f
+#define weight 1.0f
 
 using namespace std;
 

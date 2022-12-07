@@ -5,7 +5,7 @@
 
 using namespace std;
 
-constexpr double weight = 1.0;
+constexpr double weight = 2.0;
 
 class node {
  private:

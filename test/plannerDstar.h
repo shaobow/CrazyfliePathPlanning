@@ -18,17 +18,6 @@
 using namespace std;
 
 namespace CF_PLAN {
-// #define FULL_CONNECT
-
-// #ifdef FULL_CONNECT
-// #define NUMOFDIRS 26
-// #else
-// #define NUMOFDIRS 6
-// #endif
-
-// #define sqrt2 1.414f
-// #define sqrt3 1.732f
-// #define cost_inf DBL_MAX
 
 class PlannerDstar {
  private:
@@ -64,10 +53,13 @@ class PlannerDstar {
   nodeDstar* s_last;
   Idx idx_last;
 
-  vector<vector<int>> solution;
+  vector<vector<double>> solution;
 
   openList U;
   double km = 0.0;
+
+  // eval
+  int num_node = 0;
 
   // sensor for local map update
   Sensor sensor;
@@ -90,7 +82,7 @@ class PlannerDstar {
   PlannerDstar(double robot_x, double robot_y, double robot_z, double goal_x,
                double goal_y, double goal_z, const std::string& file_path,
                double grid_size, double margin_size)
-      : sensor(file_path, grid_size, margin_size) {
+      : sensor(file_path, grid_size, margin_size, true) {
     auto robot = sensor.convert_point(robot_x, robot_y, robot_z);
     auto goal = sensor.convert_point(goal_x, goal_y, goal_z);
 
@@ -120,6 +112,7 @@ class PlannerDstar {
 
   void updateVertex(array<int, 3> coord_u) {
     nodeDstar* node_u = U.getNode(coord_u);
+    num_node++;
 
     if (coord_u != coord_goal) {
       if (!sensor.is_valid(Coord(coord_u[0], coord_u[1], coord_u[2])))
@@ -239,7 +232,6 @@ class PlannerDstar {
         cout << "**** RE-PLANED ****" << endl;
       }
 
-      // move coord_start to coord_next
       if (sensor.is_valid(
               Coord(coord_start[0], coord_start[1], coord_start[2]))) {
         array<int, 3> coord_succ_min;
@@ -271,8 +263,8 @@ class PlannerDstar {
     }
 
     cout << "**** REACH GOAL POSE ****" << endl;
-    vector<int> xyz{coord_start[0], coord_start[1], coord_start[2]};
-    solution.push_back(xyz);
+    Coord xyz_idx(coord_start[0], coord_start[1], coord_start[2]);
+    solution.push_back(sensor.convert_idx(xyz_idx));
   }
 
   void update_s_last_2_s_start() {
@@ -282,8 +274,8 @@ class PlannerDstar {
   }
 
   void update_s_start(array<int, 3>& coord_new) {
-    vector<int> xyz{coord_start[0], coord_start[1], coord_start[2]};
-    solution.push_back(xyz);
+    Coord xyz_idx(coord_start[0], coord_start[1], coord_start[2]);
+    solution.push_back(sensor.convert_idx(xyz_idx));
 
     coord_start = coord_new;
     idx_start = U.umap[coord_start];
@@ -309,7 +301,11 @@ class PlannerDstar {
     }
   }
 
-  vector<vector<int>> getPath() { return this->solution; }
+  vector<vector<double>> getPath() { return this->solution; }
+
+  int getNumStep() const { return this->solution.size(); }
+
+  int getNumNode() const { return this->num_node; }
 };
 }  // namespace CF_PLAN
 

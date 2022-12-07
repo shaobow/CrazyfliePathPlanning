@@ -11,6 +11,8 @@ namespace CF_PLAN {
 
 class Sensor {
  private:
+  // use partial flag
+  bool use_partial;
   // World class
   World static_world;
   // Partially known map occupancy LUT
@@ -20,7 +22,8 @@ class Sensor {
   int range = 1;
 
  public:
-  Sensor(const std::string& file_path, double grid_size, double margin_size);
+  Sensor(const std::string& file_path, double grid_size, double margin_size,
+         bool is_dstar);
 
   // update the collision world by adding newly detected part to the object list
   // as a new collision objects

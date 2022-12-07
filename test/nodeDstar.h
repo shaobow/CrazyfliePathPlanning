@@ -1,13 +1,10 @@
 #ifndef NODEDSTAR_H__
 #define NODEDSTAR_H__
-
-#include <bits/stdtr1c++.h>
-
 #include <iostream>
 #include <utility>
 #include <vector>
 
-#define weight 5.0f
+#define weight 2.0f
 
 using namespace std;
 
@@ -43,6 +40,8 @@ class nodeDstar {
     this->x = x;
     this->y = y;
     this->z = z;
+    this->key.first = DBL_MAX;
+    this->key.second = DBL_MAX;
   }
 
   ~nodeDstar() = default;
