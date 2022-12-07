@@ -4,7 +4,7 @@ clc;
 addpath(genpath('./'));
 addpath(genpath('../bin/'))
 
-map_id = 1;
+map_id = 2;
 use_dstar = 1;
 astar_path = cell(1);
 dstar_path = cell(1);
@@ -43,8 +43,8 @@ end
 total_num_step = [];
 total_num_node = [];
 total_run_time = [];
-for i = 1:10
-    [~, num_step, num_node, run_time] = cfPlanning(map_id, grid_size, margin_size, start{1}', stop{1}', ~use_dstar);
+for i = 1:50
+    [~, num_step, num_node, run_time] = cfPlanning(map_id, grid_size, margin_size, start{1}', stop{1}', ~use_dstar, 5);
     total_num_step = [total_num_step; num_step];
     total_num_node = [total_num_node; num_node];
     total_run_time = [total_run_time; run_time];

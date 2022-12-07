@@ -4,10 +4,11 @@ clc;
 addpath(genpath('./'));
 addpath(genpath('../bin/'))
 
-map_id = 3;
+map_id = 2;
 use_dstar = 1;
-astar_path = cell(1);
-dstar_path = cell(1);
+astar_path_w1 = cell(1);
+astar_path_w2 = cell(1);
+astar_path_w5 = cell(1);
 
 switch map_id
     case 1
@@ -42,13 +43,20 @@ end
 
 tic
   disp('Planning ...');
-  [astar_path{1},~,~,~] = cfPlanning(map_id, grid_size, margin_size, start{1}', stop{1}',~use_dstar, 1);
-  %[dstar_path{1},~,~,~] = cfPlanning(map_id, grid_size, margin_size, start{1}', stop{1}',use_dstar);
+  [astar_path_w1{1},~,~,~] = cfPlanning(map_id, grid_size, margin_size, start{1}', stop{1}',~use_dstar, 1.0);
+  [astar_path_w2{1},~,~,~] = cfPlanning(map_id, grid_size, margin_size, start{1}', stop{1}',~use_dstar, 2.0);
+  [astar_path_w5{1},~,~,~] = cfPlanning(map_id, grid_size, margin_size, start{1}', stop{1}',~use_dstar, 5.0);
 toc
 
 %% A*
-trajectory_generator([], [], map, astar_path);
-trajectory = test_trajectory(map, astar_path);
+trajectory_generator([], [], map, astar_path_w1);
+trajectory = test_trajectory(map, astar_path_w1);
+
+trajectory_generator([], [], map, astar_path_w2);
+trajectory = test_trajectory(map, astar_path_w2);
+
+trajectory_generator([], [], map, astar_path_w5);
+trajectory = test_trajectory(map, astar_path_w5);
 
 %% D* Lite
 % trajectory_generator([], [], map, dstar_path);

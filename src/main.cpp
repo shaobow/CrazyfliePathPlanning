@@ -155,9 +155,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
   auto res = plan(map_id, grid_size, margin_size, robot_x, robot_y, robot_z,
                   goal_x, goal_y, goal_z, use_dstar, weight);
   auto solution = get<0>(res);
-  auto num_step = get<1>(res);
-  auto num_node = get<2>(res);
-  auto run_time = get<3>(res);
+  int num_step = get<1>(res);
+  int num_node = get<2>(res);
+  double run_time = get<3>(res);
 
   mwSize m = solution.size();
   mwSize n = 3;
