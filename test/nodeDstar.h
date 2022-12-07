@@ -7,11 +7,29 @@
 #include <utility>
 #include <vector>
 
-#define weight 5.0f
-
 using namespace std;
 
 namespace CF_PLAN {
+
+#ifdef FULL_CONNECT
+// 26-connected grid
+int dX[NUMOFDIRS] = {0,  0,  1, 0, 1,  1,  1, -1, 0,  0, -1, -1, 0,
+                     -1, -1, 1, 1, -1, -1, 1, -1, -1, 0, 0,  1,  1};
+int dY[NUMOFDIRS] = {0,  1, 0,  1, 0,  1, 1,  0, -1, 0,  -1, 0,  -1,
+                     -1, 1, -1, 1, -1, 1, -1, 0, 1,  -1, 1,  -1, 0};
+int dZ[NUMOFDIRS] = {1,  0, 0, 1,  1, 0,  1,  0, 0, -1, 0,  -1, -1,
+                     -1, 1, 1, -1, 1, -1, -1, 1, 0, 1,  -1, 0,  -1};
+double cost[NUMOFDIRS] = {1,     1,     1,     sqrt2, sqrt2, sqrt2, sqrt3,
+                          1,     1,     1,     sqrt2, sqrt2, sqrt2, sqrt3,
+                          sqrt3, sqrt3, sqrt3, sqrt3, sqrt3, sqrt3, sqrt2,
+                          sqrt2, sqrt2, sqrt2, sqrt2, sqrt2};
+#else
+// 26-connected grid
+int dX[NUMOFDIRS] = {0, 0, 1, 0, 0, -1};
+int dY[NUMOFDIRS] = {0, 1, 0, 0, -1, 0};
+int dZ[NUMOFDIRS] = {1, 0, 0, -1, 0, 0};
+double cost[NUMOFDIRS] = {1, 1, 1, 1, 1, 1};
+#endif
 
 class nodeDstar {
  private:
@@ -43,6 +61,9 @@ class nodeDstar {
     this->x = x;
     this->y = y;
     this->z = z;
+
+    this->key.first = DBL_MAX;
+    this->key.second = DBL_MAX;
   }
 
   ~nodeDstar() = default;
@@ -75,11 +96,11 @@ class nodeDstar {
   void set_back_ptr(nodeDstar* ptr) { this->backpointer = ptr; }
 
   double calc_h_value(nodeDstar* n_start) {
-    return weight * sqrt(pow(n_start->getX() - this->x, 2) +
-                         pow(n_start->getY() - this->y, 2) +
-                         pow(n_start->getZ() - this->z,
-                             2));  // Euclidean distance in 3D
-                                   // this->h_value = 0;
+    return sqrt(pow(n_start->getX() - this->x, 2) +
+                pow(n_start->getY() - this->y, 2) +
+                pow(n_start->getZ() - this->z,
+                    2));  // Euclidean distance in 3D
+                          // this->h_value = 0;
   }
 
   double get_g_value() const { return this->g_value; }
@@ -92,6 +113,10 @@ class nodeDstar {
 
   void print_node() const {
     cout << "node: " << this->x << ", " << this->y << ", " << this->z << endl;
+  }
+
+  void print_key() const {
+    cout << " key: " << this->key.first << ", " << this->key.second << endl;
   }
 
   bool isSmallerKey(const pair<double, double>& rhs) {

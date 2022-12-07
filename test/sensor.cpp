@@ -38,14 +38,17 @@ bool Sensor::is_valid(const Coord& robot_state) {
     return false;
   }
 
-  // if (partial_map.count(robot_state) > 0) {
+  /**/
+  if (partial_map.count(robot_state) > 0) {
+    return false;
+  }
+
+  // // only for testing static world
+  // if (static_world.is_ocp(robot_state)) {
   //   return false;
   // }
 
-  // only for testing static world
-  if (static_world.is_ocp(robot_state)) {
-    return false;
-  }
+  /**/
   return true;
 }
 

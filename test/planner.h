@@ -29,7 +29,6 @@ namespace CF_PLAN {
 // #define sqrt3 1.732
 
 class Planner {
- private:
 #ifdef FULL_CONNECT
   // 26-connected grid
   int dX[NUMOFDIRS] = {0,  0,  1, 0, 1,  1,  1, -1, 0,  0, -1, -1, 0,
@@ -50,6 +49,7 @@ class Planner {
   double cost[NUMOFDIRS] = {1, 1, 1, 1, 1, 1};
 #endif
 
+ private:
   // goal info
   int goalposeX;
   int goalposeY;

@@ -32,7 +32,11 @@ class openList {
     return node_list.size() - 1;
   }
 
-  openList(){};
+  openList() {
+    pq.clear();
+    node_list.clear();
+    umap.clear();
+  };
 
   ~openList() = default;
 
@@ -43,7 +47,7 @@ class openList {
     if (itr != pq.end()) {
       // cout << "situation 3" << endl;
 
-      umap[u] = idx_new;
+      idx_new = umap[u];
       node_list[idx_new].get()->set_key(key_u);
 
       itr->second = key_u;  // update key value
@@ -67,7 +71,7 @@ class openList {
   void remove(array<int, 3> u) {
     auto itr = pq.find(u);
     if (itr != pq.end()) {  // u within U
-      pq.erase(itr);
+      auto itr_after = pq.erase(itr);
     }
   }
 
@@ -91,11 +95,11 @@ class openList {
     return coord_top;
   }
 
-  pair<double, double> topKey() {
-    array<int, 3> coord_top = this->top();
-    Idx idx_top = umap[coord_top];
-    return node_list[idx_top].get()->get_key();
-  }
+  // pair<double, double> topKey() {
+  //   array<int, 3> coord_top = this->top();
+  //   Idx idx_top = umap[coord_top];
+  //   return node_list[idx_top].get()->get_key();
+  // }
 
   // alternative of topKey() to avoid search twice
   pair<double, double> topKey(array<int, 3> coord_top) {
@@ -103,10 +107,10 @@ class openList {
     return node_list[idx_top].get()->get_key();
   }
 
-  void pop() {
-    array<int, 3> coord_top = this->top();
-    this->remove(coord_top);
-  }
+  // void pop() {
+  //   array<int, 3> coord_top = this->top();
+  //   this->remove(coord_top);
+  // }
 
   void pop(array<int, 3> coord_top) { this->remove(coord_top); }
 
@@ -123,18 +127,45 @@ class openList {
       idx_u = add_node(coord_u[0], coord_u[1], coord_u[2]);
       umap[coord_u] = idx_u;
 
-      if (flag_OL == 1) cout << "doesn't exit";
+      // if (flag_replan == 1)
+      //   cout << "[doesn't] node: " << coord_u[0] << ", " << coord_u[1] << ",
+      //   "
+      //        << coord_u[2] << endl;
     } else {
       idx_u = umap[coord_u];
-      if (flag_OL == 1) cout << "exit";
-    }
 
-    if (flag_OL == 1) cout << "\t.getNode() idx_u: " << idx_u << endl;
+      // if (flag_replan == 1)
+      //   cout << "[exit] node: " << coord_u[0] << ", " << coord_u[1] << ", "
+      //        << coord_u[2] << endl;
+    }
 
     return node_list[idx_u].get();
   }
 
-  int flag_OL = 0;
+  int flag_replan = 0;
+
+  void printNodeKey(array<int, 3> coord_u) {
+    if (umap.count(coord_u) == 0)
+      cout << "node (" << coord_u[0] << ", " << coord_u[1] << ", " << coord_u[2]
+           << ") doesn't exit" << endl;
+    else {
+      cout << "node (" << coord_u[0] << ", " << coord_u[1] << ", " << coord_u[2]
+           << ") ";
+      node_list[umap[coord_u]].get()->print_key();
+    }
+  }
+
+  void printAroundNode(array<int, 3> coord_u) {
+    printNodeKey(coord_u);
+    for (int dir = 0; dir < NUMOFDIRS; dir++) {
+      int predX = coord_u[0] + dX[dir];
+      int predY = coord_u[1] + dY[dir];
+      int predZ = coord_u[2] + dZ[dir];
+
+      printNodeKey({predX, predY, predZ});
+    }
+    cout << endl;
+  }
 };  // namespace CF_PLAN
 }  // namespace CF_PLAN
 #endif
