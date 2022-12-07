@@ -81,6 +81,21 @@ class PlannerDstar {
     idx_goal = U.umap[coord_goal];
 
     solution.clear();
+
+    cout << "double robot: " << robot_x << ", " << robot_y << ", " << robot_z
+         << endl;
+    cout << "double goal: " << goal_x << ", " << goal_y << ", " << goal_z
+         << endl
+         << endl;
+
+    cout << "robot: " << robot.x << ", " << robot.y << ", " << robot.z << endl;
+    cout << "goal: " << goal.x << ", " << goal.y << ", " << goal.z << endl
+         << endl;
+
+    cout << "robot pose: " << coord_start[0] << ", " << coord_start[1] << ", "
+         << coord_start[2] << endl;
+    cout << "goal pose: " << coord_goal[0] << ", " << coord_goal[1] << ", "
+         << coord_goal[2] << endl;
   };
 
   ~PlannerDstar() = default;
@@ -280,7 +295,10 @@ class PlannerDstar {
         // flag_replan = 1;
 
         computeShortestPath();
-        cout << "**** RE-PLANED ****" << endl;
+        num_replan++;
+        cout << "**** RE-PLANED " << num_replan << " ****";
+        cout << "s_start: " << coord_start[0] << ", " << coord_start[1] << ", "
+             << coord_start[2] << endl;
       }
 
       // move coord_start to coord_next
@@ -354,6 +372,8 @@ class PlannerDstar {
   // void print_key(pair<double, double> key) const {
   //   cout << " key: <" << key.first << ", " << key.second << ">" << endl;
   // }
+
+  int num_replan = 0;
 };
 }  // namespace CF_PLAN
 

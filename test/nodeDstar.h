@@ -1,7 +1,7 @@
 #ifndef NODEDSTAR_H__
 #define NODEDSTAR_H__
 
-#include <bits/stdtr1c++.h>
+// #include <bits/stdtr1c++.h>
 
 #include <iostream>
 #include <utility>

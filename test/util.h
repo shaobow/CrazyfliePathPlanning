@@ -12,7 +12,7 @@
 
 #define MAXDOUBLE DBL_MAX
 
-// #define FULL_CONNECT
+#define FULL_CONNECT
 
 #ifdef FULL_CONNECT
 #define NUMOFDIRS 26
