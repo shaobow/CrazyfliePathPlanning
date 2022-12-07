@@ -60,6 +60,9 @@ class Planner {
   int robotposeY;
   int robotposeZ;
 
+  // eval
+  int num_node = 0;
+
   // A* search
   unordered_map<array<int, 3>, int, arrayHash>
       umap;  // use coord. to find idx of ptr address
@@ -87,7 +90,7 @@ class Planner {
   Planner(double robot_x, double robot_y, double robot_z, double goal_x,
           double goal_y, double goal_z, const std::string& file_path,
           double grid_size, double margin_size)
-      : sensor(file_path, grid_size, margin_size) {
+      : sensor(file_path, grid_size, margin_size, false) {
     auto robot = sensor.convert_point(robot_x, robot_y, robot_z);
     auto goal = sensor.convert_point(goal_x, goal_y, goal_z);
     this->updateRobotPose(robot.x, robot.y, robot.z);
@@ -177,6 +180,7 @@ class Planner {
       }
 
       s_current = node_list[openList.top()].get();
+      num_node++;
       // s_current->print_node();
     }
   }
@@ -196,6 +200,8 @@ class Planner {
       Coord xyz_idx(curr->getX(), curr->getY(), curr->getZ());
       solution.push_back(sensor.convert_idx(xyz_idx));
     }
+    Coord xyz_idx(curr->getX(), curr->getY(), curr->getZ());
+    solution.push_back(sensor.convert_idx(xyz_idx));
   }
 
   void printPath() {
@@ -206,6 +212,10 @@ class Planner {
   }
 
   vector<vector<double>> getPath() { return this->solution; }
+
+  int getNumStep() const { return this->solution.size(); }
+
+  int getNumNode() const { return this->num_node; }
 };
 }  // namespace CF_PLAN
 

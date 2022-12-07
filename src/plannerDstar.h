@@ -58,6 +58,9 @@ class PlannerDstar {
   openList U;
   double km = 0.0;
 
+  // eval
+  int num_node = 0;
+
   // sensor for local map update
   Sensor sensor;
 
@@ -79,7 +82,7 @@ class PlannerDstar {
   PlannerDstar(double robot_x, double robot_y, double robot_z, double goal_x,
                double goal_y, double goal_z, const std::string& file_path,
                double grid_size, double margin_size)
-      : sensor(file_path, grid_size, margin_size) {
+      : sensor(file_path, grid_size, margin_size, true) {
     auto robot = sensor.convert_point(robot_x, robot_y, robot_z);
     auto goal = sensor.convert_point(goal_x, goal_y, goal_z);
 
@@ -109,6 +112,7 @@ class PlannerDstar {
 
   void updateVertex(array<int, 3> coord_u) {
     nodeDstar* node_u = U.getNode(coord_u);
+    num_node++;
 
     if (coord_u != coord_goal) {
       if (!sensor.is_valid(Coord(coord_u[0], coord_u[1], coord_u[2])))
@@ -212,50 +216,50 @@ class PlannerDstar {
         return;
       }
 
-      // // check if any edge cost changes Coord_updated =
-      // Coord_updated = sensor.update_collision_world(
-      //     Coord(coord_start[0], coord_start[1], coord_start[2]));
-      // if (Coord_updated.size() != 0) {
-      //   km += s_last->calc_h_value(s_start);
-      //   update_s_last_2_s_start();
+      // check if any edge cost changes Coord_updated =
+      Coord_updated = sensor.update_collision_world(
+          Coord(coord_start[0], coord_start[1], coord_start[2]));
+      if (Coord_updated.size() != 0) {
+        km += s_last->calc_h_value(s_start);
+        update_s_last_2_s_start();
 
-      //   for (auto itr : Coord_updated) {
-      //     coord_updated = {itr.x, itr.y, itr.z};
-      //     updateVertex(coord_updated);
-      //   }
-
-      //   computeShortestPath();
-      //   cout << "**** RE-PLANED ****" << endl;
-      // }
-
-      // move coord_start to coord_next
-      // if (sensor.is_valid(
-      //         Coord(coord_start[0], coord_start[1], coord_start[2]))) {
-      array<int, 3> coord_succ_min;
-      double min_cost_and_g = DBL_MAX;
-      double min_tmp;
-
-      int succX;
-      int succY;
-      int succZ;
-
-      for (int dir = 0; dir < NUMOFDIRS; dir++) {
-        succX = coord_start[0] + dX[dir];
-        succY = coord_start[1] + dY[dir];
-        succZ = coord_start[2] + dZ[dir];
-
-        if (sensor.is_valid(Coord(succX, succY, succZ))) {
-          min_tmp = cost[dir] + U.getNode({succX, succY, succZ})->get_g_value();
-
-          if (min_tmp < min_cost_and_g) {
-            min_cost_and_g = min_tmp;
-            coord_succ_min = {succX, succY, succZ};
-          }
+        for (auto itr : Coord_updated) {
+          coord_updated = {itr.x, itr.y, itr.z};
+          updateVertex(coord_updated);
         }
+
+        computeShortestPath();
+        cout << "**** RE-PLANED ****" << endl;
       }
 
-      update_s_start(coord_succ_min);
-      // }
+      if (sensor.is_valid(
+              Coord(coord_start[0], coord_start[1], coord_start[2]))) {
+        array<int, 3> coord_succ_min;
+        double min_cost_and_g = DBL_MAX;
+        double min_tmp;
+
+        int succX;
+        int succY;
+        int succZ;
+
+        for (int dir = 0; dir < NUMOFDIRS; dir++) {
+          succX = coord_start[0] + dX[dir];
+          succY = coord_start[1] + dY[dir];
+          succZ = coord_start[2] + dZ[dir];
+
+          if (sensor.is_valid(Coord(succX, succY, succZ))) {
+            min_tmp =
+                cost[dir] + U.getNode({succX, succY, succZ})->get_g_value();
+
+            if (min_tmp < min_cost_and_g) {
+              min_cost_and_g = min_tmp;
+              coord_succ_min = {succX, succY, succZ};
+            }
+          }
+        }
+
+        update_s_start(coord_succ_min);
+      }
     }
 
     cout << "**** REACH GOAL POSE ****" << endl;
@@ -298,6 +302,10 @@ class PlannerDstar {
   }
 
   vector<vector<double>> getPath() { return this->solution; }
+
+  int getNumStep() const { return this->solution.size(); }
+
+  int getNumNode() const { return this->num_node; }
 };
 }  // namespace CF_PLAN
 

@@ -39,20 +39,5 @@ switch map_id
         start = {[8 0.5 2]};
         stop  = {[15 18 7]};
 end
-
-tic
-  disp('Planning ...');
-  [astar_path{1},~,~,~] = cfPlanning(map_id, grid_size, margin_size, start{1}', stop{1}',~use_dstar);
-%   [dstar_path{1},~,~,~] = cfPlanning(map_id, grid_size, margin_size, start{1}', stop{1}',use_dstar);
-toc
-
-%plot_path(map, path{1});
-
-%% Additional init script
-% init_script;
-trajectory_generator([], [], map, astar_path);
-trajectory = test_trajectory(map, astar_path);
-
 %% 
-% trajectory_generator([], [], map, dstar_path);
-% trajectory = test_trajectory(map, dstar_path);
+[path, num_step, num_node, run_time] = cfPlanning(map_id, grid_size, margin_size, start{1}', stop{1}',use_dstar);

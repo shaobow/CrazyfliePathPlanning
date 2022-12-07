@@ -1,6 +1,7 @@
 #include <mex.h>
 
 #include <iostream>
+#include <tuple>
 
 #include "chrono"
 #include "matrix.h"
@@ -20,6 +21,9 @@
 
 /* Output Arguments */
 #define PATH plhs[0]
+#define NUM_STEP plhs[1]
+#define NUM_NODE plhs[2]
+#define TIME plhs[3]
 
 namespace {
 const std::string MAP1_PATH = "./maps/map1.txt";
@@ -28,12 +32,15 @@ const std::string MAP3_PATH = "./maps/map3.txt";
 const std::string MAP_TEST_PATH = "./maps/map_test.txt";
 }  // namespace
 
-vector<vector<double>> plan(int map_id, double grid_size, double margin_size,
-                            double robot_x, double robot_y, double robot_z,
-                            double goal_x, double goal_y, double goal_z,
-                            bool use_dstar = false) {
+tuple<vector<vector<double>>, int, int, double> plan(
+    int map_id, double grid_size, double margin_size, double robot_x,
+    double robot_y, double robot_z, double goal_x, double goal_y, double goal_z,
+    bool use_dstar = false) {
   std::string map_path;
   vector<vector<double>> solution = {};
+  int num_step;
+  int num_node;
+  double run_time;
 
   switch (map_id) {
     case 1:
@@ -71,9 +78,11 @@ vector<vector<double>> plan(int map_id, double grid_size, double margin_size,
     dstarLite.plan();
     stop = chrono::high_resolution_clock::now();
     auto solve_time = chrono::duration_cast<chrono::milliseconds>(stop - start);
-    // dstarLite.printPath();
+    run_time = solve_time.count() / 1000.0;
     solution = dstarLite.getPath();
-    std::cout << "D* Lite planner takes " << solve_time.count() / 1000.0
+    num_step = dstarLite.getNumStep();
+    num_node = dstarLite.getNumNode();
+    std::cout << "D* Lite planner takes " << run_time
               << " seconds to find solution.\n";
   } else {
     auto start = std::chrono::high_resolution_clock::now();
@@ -89,12 +98,14 @@ vector<vector<double>> plan(int map_id, double grid_size, double margin_size,
     astar.plan();
     stop = chrono::high_resolution_clock::now();
     auto solve_time = chrono::duration_cast<chrono::milliseconds>(stop - start);
-    // astar.printPath();
+    run_time = solve_time.count() / 1000.0;
     solution = astar.getPath();
-    std::cout << "A* planner takes " << solve_time.count() / 1000.0
+    num_step = astar.getNumStep();
+    num_node = astar.getNumNode();
+    std::cout << "A* planner takes " << run_time
               << " seconds to find solution.\n";
   }
-  return solution;
+  return make_tuple(solution, num_step, num_node, run_time);
 }
 
 /* MEX entry function */
@@ -104,9 +115,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     mexErrMsgIdAndTxt("MATLAB:cudaAdd:inputmismatch",
                       "Input arguments must be 6!");
   }
-  if (nlhs != 1) {
+  if (nlhs != 4) {
     mexErrMsgIdAndTxt("MATLAB:cudaAdd:outputmismatch",
-                      "Output arguments must be 1!");
+                      "Output arguments must be 4!");
   }
 
   int map_id = (int)mxGetScalar(MAP_ID);
@@ -138,12 +149,21 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
   double goal_y = goal_ptr[1];
   double goal_z = goal_ptr[2];
 
-  auto solution = plan(map_id, grid_size, margin_size, robot_x, robot_y,
-                       robot_z, goal_x, goal_y, goal_z, use_dstar);
+  auto res = plan(map_id, grid_size, margin_size, robot_x, robot_y, robot_z,
+                  goal_x, goal_y, goal_z, use_dstar);
+  auto solution = get<0>(res);
+  auto num_step = get<1>(res);
+  auto num_node = get<2>(res);
+  auto run_time = get<3>(res);
+
   mwSize m = solution.size();
   mwSize n = 3;
   PATH = mxCreateDoubleMatrix(m, n, mxREAL);
   double *path_ptr = mxGetPr(PATH);
+
+  NUM_STEP = mxCreateDoubleScalar(num_step);
+  NUM_NODE = mxCreateDoubleScalar(num_step);
+  TIME = mxCreateDoubleScalar(run_time);
 
   for (int i = 0; i < m; i++) {
     for (int j = 0; j < n; j++) {

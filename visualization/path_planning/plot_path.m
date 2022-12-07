@@ -4,7 +4,9 @@ function plot_path(map, path)
 %   environment.  path is an N-by-3 matrix where each row corresponds to the
 %   (x, y, z) coordinates of one point along the path.
 
-figure(1);
+fig = figure(1);
+fig.Color = 'w';
+fig.WindowState = 'maximized';
 % path = points_to_idx(map, path);
 
 
@@ -60,9 +62,13 @@ for i = 1:size(map.blocks,1)
 end
 
 if size(path,1) > 0
-pcshow(path, [1,1,1],'MarkerSize', 0.5);
+pcshow(path, [0,0,0],'MarkerSize', 1);
+set(gcf,'color','w');
+set(gca,'color','w');
+set(gca, 'XColor', [0.15 0.15 0.15], 'YColor', [0.15 0.15 0.15], 'ZColor', [0.15 0.15 0.15]);
+axis on
+axis([map.boundary(1)-1, map.boundary(4)-1, map.boundary(2)-1,map.boundary(5)+1,map.boundary(3)+1,map.boundary(6)+1]);
 end
-axis([map.boundary(1)-1, map.boundary(4)-1, map.boundary(2)-1,map.boundary(5)+1,map.boundary(3)+1,map.boundary(6)+1])
 hold off;
-%view(3); % default 3D view
+view(3); % default 3D view
 end

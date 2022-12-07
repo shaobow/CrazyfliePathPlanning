@@ -38,7 +38,7 @@ for i = 1:size(path,1)-1
     path1 = [path1; path(i,:)];
 %     path1 = [path1; path(i,:) + (path(i+1,:)-path(i,:))*0.1];
 %     path1 = [path1; path(i,:) + (path(i+1,:)-path(i,:))*0.2];
-%     path1 = [path1; path(i,:) + (path(i+1,:)-path(i,:))*0.5];
+    path1 = [path1; path(i,:) + (path(i+1,:)-path(i,:))*0.5];
 %     path1 = [path1; path(i,:) + (path(i+1,:)-path(i,:))*0.7];
 %     path1 = [path1; path(i,:) + (path(i+1,:)-path(i,:))*0.9];
 end
