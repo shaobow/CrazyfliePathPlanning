@@ -5,14 +5,15 @@
 
 using namespace std;
 
-constexpr double weight = 2.0;
-
 class node {
  private:
   // location info
   int x;
   int y;
   int z;
+
+  // weight
+  double weight;
 
   // dynamic info
   double yaw;
@@ -34,7 +35,7 @@ class node {
   node* backpointer = nullptr;  // backward from GOAL
 
  public:
-  node(int x, int y, int z) {
+  node(int x, int y, int z, double weight) : weight(weight) {
     this->x = x;
     this->y = y;
     this->z = z;

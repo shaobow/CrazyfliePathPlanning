@@ -63,6 +63,9 @@ class Planner {
   // eval
   int num_node = 0;
 
+  // weight
+  double weight;
+
   // A* search
   unordered_map<array<int, 3>, int, arrayHash>
       umap;  // use coord. to find idx of ptr address
@@ -81,7 +84,7 @@ class Planner {
   bool isValid(const Coord& robot_state);
 
   int add_node(int x, int y, int z) {
-    auto temp = make_unique<node>(x, y, z);
+    auto temp = make_unique<node>(x, y, z, weight);
     node_list.push_back(move(temp));
     return node_list.size() - 1;
   }
@@ -89,8 +92,8 @@ class Planner {
  public:
   Planner(double robot_x, double robot_y, double robot_z, double goal_x,
           double goal_y, double goal_z, const std::string& file_path,
-          double grid_size, double margin_size)
-      : sensor(file_path, grid_size, margin_size, false) {
+          double grid_size, double margin_size, double weight)
+      : sensor(file_path, grid_size, margin_size, false), weight(weight) {
     auto robot = sensor.convert_point(robot_x, robot_y, robot_z);
     auto goal = sensor.convert_point(goal_x, goal_y, goal_z);
     this->updateRobotPose(robot.x, robot.y, robot.z);

@@ -18,6 +18,7 @@
 #define START prhs[3]
 #define GOAL prhs[4]
 #define USE_DSTAR prhs[5]
+#define WEIGHT prhs[6]
 
 /* Output Arguments */
 #define PATH plhs[0]
@@ -35,7 +36,7 @@ const std::string MAP_TEST_PATH = "./maps/map_test.txt";
 tuple<vector<vector<double>>, int, int, double> plan(
     int map_id, double grid_size, double margin_size, double robot_x,
     double robot_y, double robot_z, double goal_x, double goal_y, double goal_z,
-    bool use_dstar = false) {
+    bool use_dstar, double weight) {
   std::string map_path;
   vector<vector<double>> solution = {};
   int num_step;
@@ -87,7 +88,7 @@ tuple<vector<vector<double>>, int, int, double> plan(
   } else {
     auto start = std::chrono::high_resolution_clock::now();
     CF_PLAN::Planner astar(robot_x, robot_y, robot_z, goal_x, goal_y, goal_z,
-                           map_path, grid_size, margin_size);
+                           map_path, grid_size, margin_size, weight);
     auto stop = std::chrono::high_resolution_clock::now();
     auto construct_time =
         std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
@@ -111,7 +112,7 @@ tuple<vector<vector<double>>, int, int, double> plan(
 /* MEX entry function */
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
   /* argument check */
-  if (nrhs != 6) {
+  if (nrhs != 7) {
     mexErrMsgIdAndTxt("MATLAB:cudaAdd:inputmismatch",
                       "Input arguments must be 6!");
   }
@@ -128,6 +129,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
   double *goal_ptr = mxGetPr(GOAL);
 
   bool use_dstar = (bool)mxGetScalar(USE_DSTAR);
+
+  double weight = mxGetScalar(WEIGHT);
 
   if (mxGetM(START) != 3 || mxGetN(START) != 1) {
     mexErrMsgIdAndTxt("MATLAB:cudaAdd:sizemismatch",
@@ -150,7 +153,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
   double goal_z = goal_ptr[2];
 
   auto res = plan(map_id, grid_size, margin_size, robot_x, robot_y, robot_z,
-                  goal_x, goal_y, goal_z, use_dstar);
+                  goal_x, goal_y, goal_z, use_dstar, weight);
   auto solution = get<0>(res);
   auto num_step = get<1>(res);
   auto num_node = get<2>(res);

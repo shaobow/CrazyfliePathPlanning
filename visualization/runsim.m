@@ -42,14 +42,14 @@ end
 
 tic
   disp('Planning ...');
-  [astar_path{1},~,~,~] = cfPlanning(map_id, grid_size, margin_size, start{1}', stop{1}',~use_dstar);
-  [dstar_path{1},~,~,~] = cfPlanning(map_id, grid_size, margin_size, start{1}', stop{1}',use_dstar);
+  [astar_path{1},~,~,~] = cfPlanning(map_id, grid_size, margin_size, start{1}', stop{1}',~use_dstar, 1);
+  %[dstar_path{1},~,~,~] = cfPlanning(map_id, grid_size, margin_size, start{1}', stop{1}',use_dstar);
 toc
 
 %% A*
-% trajectory_generator([], [], map, astar_path);
-% trajectory = test_trajectory(map, astar_path);
+trajectory_generator([], [], map, astar_path);
+trajectory = test_trajectory(map, astar_path);
 
 %% D* Lite
-trajectory_generator([], [], map, dstar_path);
-trajectory = test_trajectory(map, dstar_path);
+% trajectory_generator([], [], map, dstar_path);
+% trajectory = test_trajectory(map, dstar_path);

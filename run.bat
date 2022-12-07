@@ -1,6 +1,6 @@
-rm build
+if exist "build" rm build
 mkdir build
-rm bin
+if exist "bin" rm bin
 mkdir bin
 cd build
 cmake ../src 
