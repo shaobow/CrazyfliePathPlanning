@@ -4,6 +4,9 @@ project(cfPlanning_test VERSION 0.1.0)
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
 
 SET(Planning_SRCS
+    plannerDstar.cpp
+    openList.cpp
+    nodeDstar.cpp
     sensor.cpp
     world.cpp
     test.cpp

@@ -2,7 +2,7 @@
 
 #include "chrono"
 #include "planner.h"
-#include "plannerDstar.h"
+#include "plannerDstar.hpp"
 #include "sensor.h"
 #include "util.h"
 #include "world.h"
@@ -45,7 +45,7 @@ vector<vector<double>> plan(int map_id, double grid_size, double margin_size) {
   }
 
   auto start = std::chrono::high_resolution_clock::now();
-  CF_PLAN::PlannerDstar dstarLite(robot_x, robot_y, robot_z, goal_x, goal_y,
+  CF_PLAN::plannerDstar dstarLite(robot_x, robot_y, robot_z, goal_x, goal_y,
                                   goal_z, map_path, grid_size, margin_size);
   auto stop = std::chrono::high_resolution_clock::now();
   auto construct_time =
