@@ -44,22 +44,21 @@ class openList {
     auto itr = pq.find(u);
     Idx idx_new;
 
-    if (itr != pq.end()) {
-      // cout << "situation 3" << endl;
+    if (key_u.first == DBL_MAX && key_u.second == DBL_MAX) {
+      cout << "**** g and rhs both inf. when insert? ****" << endl;
+      printAroundNode(u);
+    }
 
+    if (itr != pq.end()) {
       idx_new = umap[u];
       node_list[idx_new].get()->set_key(key_u);
 
       itr->second = key_u;  // update key value
     } else {
       if (umap.count(u) == 0) {
-        // cout << "situation 2" << endl;
-
         idx_new = add_node(u[0], u[1], u[2]);
         umap[u] = idx_new;
       } else {
-        // cout << "situation 1" << endl;
-
         idx_new = umap[u];
       }
 
@@ -68,16 +67,27 @@ class openList {
     }
   }
 
-  void remove(array<int, 3> u) {
-    auto itr = pq.find(u);
-    if (itr != pq.end()) {  // u within U
-      auto itr_after = pq.erase(itr);
-    }
-  }
+  // int remove(array<int, 3> u) {
+  //   auto itr = pq.find(u);
+  //   if (itr != pq.end()) {  // u within U
+  //     pq.erase(itr);
+  //   }
 
-  bool isInOpenList(array<int, 3> u) {
+  //   return 1;
+  // }
+
+  // bool isInOpenList(array<int, 3> u) {
+  //   auto itr = pq.find(u);
+  //   return itr != pq.end();
+  // }
+
+  int isInOpenList_and_remove(array<int, 3> u) {
     auto itr = pq.find(u);
-    return itr != pq.end();
+    if (itr != pq.end()) {  // in openlist and removed
+      pq.erase(itr);
+      return 1;
+    }
+    return 0;  // not in openList
   }
 
   array<int, 3> top() {
@@ -112,11 +122,17 @@ class openList {
   //   this->remove(coord_top);
   // }
 
-  void pop(array<int, 3> coord_top) { this->remove(coord_top); }
+  // void pop(array<int, 3> coord_top) { this->remove(coord_top); }
+
+  int pop(array<int, 3> coord_top) {
+    pq.erase(pq.find(coord_top));
+    return 1;
+  }
 
   void clear() {
     pq.clear();
     node_list.clear();
+    umap.clear();
   }
 
   bool empty() { return pq.size() == 0; }
@@ -142,8 +158,7 @@ class openList {
     return node_list[idx_u].get();
   }
 
-  int flag_replan = 0;
-
+  /* TEST  FUNCTION */
   void printNodeKey(array<int, 3> coord_u) {
     if (umap.count(coord_u) == 0)
       cout << "node (" << coord_u[0] << ", " << coord_u[1] << ", " << coord_u[2]
@@ -165,6 +180,19 @@ class openList {
       printNodeKey({predX, predY, predZ});
     }
     cout << endl;
+  }
+
+  int flag_replan = 10;
+
+  void isGEqualRhs(array<int, 3> coord_u) {
+    nodeDstar* node_u = node_list[umap[coord_u]].get();
+
+    if (node_u->get_g_value() != node_u->get_rhs_value()) {
+      cout << "node (" << coord_u[0] << ", " << coord_u[1] << ", " << coord_u[2]
+           << ") inconsistent while removed. g: " << node_u->get_g_value()
+           << ", rhs: " << node_u->get_rhs_value() << ", U.remove()" << endl;
+      printAroundNode(coord_u);
+    }
   }
 };  // namespace CF_PLAN
 }  // namespace CF_PLAN

@@ -24,7 +24,7 @@ double cost[NUMOFDIRS] = {1,     1,     1,     sqrt2, sqrt2, sqrt2, sqrt3,
                           sqrt3, sqrt3, sqrt3, sqrt3, sqrt3, sqrt3, sqrt2,
                           sqrt2, sqrt2, sqrt2, sqrt2, sqrt2};
 #else
-// 26-connected grid
+// 6-connected grid
 int dX[NUMOFDIRS] = {0, 0, 1, 0, 0, -1};
 int dY[NUMOFDIRS] = {0, 1, 0, 0, -1, 0};
 int dZ[NUMOFDIRS] = {1, 0, 0, -1, 0, 0};
@@ -51,16 +51,18 @@ class nodeDstar {
 
   double cost;
 
-  double h_value = -1;  // -1: h-value hasn't set
+  // double h_value = -1;  // -1: h-value hasn't set
 
-  // backtracking
-  nodeDstar* backpointer = nullptr;  // backward from GOAL
+  // const double weight = 5.0f;
 
  public:
   nodeDstar(int x, int y, int z) {
     this->x = x;
     this->y = y;
     this->z = z;
+
+    this->g_value = DBL_MAX;
+    this->rhs_value = DBL_MAX;
 
     this->key.first = DBL_MAX;
     this->key.second = DBL_MAX;
@@ -93,7 +95,7 @@ class nodeDstar {
     this->key.second = k.second;
   }
 
-  void set_back_ptr(nodeDstar* ptr) { this->backpointer = ptr; }
+  // void set_back_ptr(nodeDstar* ptr) { this->backpointer = ptr; }
 
   double calc_h_value(nodeDstar* n_start) {
     return sqrt(pow(n_start->getX() - this->x, 2) +
@@ -109,7 +111,7 @@ class nodeDstar {
 
   pair<double, double> get_key() const { return this->key; }
 
-  nodeDstar* get_back_ptr() const { return this->backpointer; }
+  // nodeDstar* get_back_ptr() const { return this->backpointer; }
 
   void print_node() const {
     cout << "node: " << this->x << ", " << this->y << ", " << this->z << endl;
@@ -129,6 +131,8 @@ class nodeDstar {
   bool isEqualKey(const pair<double, double>& rhs) {
     return this->key.first == rhs.first && this->key.second == rhs.second;
   }
+
+  bool isGEqualRhs(nodeDstar* n) { return this->g_value != this->rhs_value; }
 };
 
 }  // namespace CF_PLAN

@@ -81,21 +81,6 @@ class PlannerDstar {
     idx_goal = U.umap[coord_goal];
 
     solution.clear();
-
-    cout << "double robot: " << robot_x << ", " << robot_y << ", " << robot_z
-         << endl;
-    cout << "double goal: " << goal_x << ", " << goal_y << ", " << goal_z
-         << endl
-         << endl;
-
-    cout << "robot: " << robot.x << ", " << robot.y << ", " << robot.z << endl;
-    cout << "goal: " << goal.x << ", " << goal.y << ", " << goal.z << endl
-         << endl;
-
-    cout << "robot pose: " << coord_start[0] << ", " << coord_start[1] << ", "
-         << coord_start[2] << endl;
-    cout << "goal pose: " << coord_goal[0] << ", " << coord_goal[1] << ", "
-         << coord_goal[2] << endl;
   };
 
   ~PlannerDstar() = default;
@@ -106,26 +91,19 @@ class PlannerDstar {
     idx_start = U.umap[coord_start];
   }
 
-  // TODO: implement D* Lite
+  // D* Lite
   pair<double, double> calculateKey(array<int, 3>& coord_u) {
     nodeDstar* node_u = U.getNode(coord_u);
     double min_g_rhs = std::min(node_u->get_g_value(), node_u->get_rhs_value());
-    return make_pair(min_g_rhs + node_u->calc_h_value(s_start), min_g_rhs);
+    return make_pair(min_g_rhs + node_u->calc_h_value(s_start) + km, min_g_rhs);
   }
 
-  void updateVertex(array<int, 3> coord_u) {
+  int updateVertex(array<int, 3> coord_u) {
     nodeDstar* node_u = U.getNode(coord_u);
 
-    // if (flag_replan == 1) {
-    //   cout << "updateVertex coord_u: " << coord_u[0] << ", " << coord_u[1]
-    //        << ", " << coord_u[2] << " ";
-    //   print_key(node_u->get_key());
-    // }
+    int flag_removed_from_pq = 0;
 
     if (coord_u != coord_goal) {
-      // if (flag_replan == 1)
-      //   cout << " ------ updateVertex situation 1 ------ " << endl;
-
       if (!sensor.is_valid(Coord(coord_u[0], coord_u[1], coord_u[2]))) {
         node_u->set_rhs_value(cost_inf);
       } else {
@@ -150,19 +128,21 @@ class PlannerDstar {
       }
     }
 
-    if (U.isInOpenList(coord_u)) {
-      // if (flag_replan == 1)
-      //   cout << " ------ updateVertex situation 2 ------ " << endl;
+    // if (U.isInOpenList(coord_u)) {
+    //   flag_removed_from_pq = U.remove(coord_u);  // return 1
+    // }
 
-      U.remove(coord_u);
-    }
+    flag_removed_from_pq = U.isInOpenList_and_remove(coord_u);
 
     if (node_u->get_g_value() != node_u->get_rhs_value()) {
-      // if (flag_replan == 1)
-      //   cout << " ------ updateVertex situation 3 ------ " << endl;
-
       U.insert(coord_u, calculateKey(coord_u));
+
+      flag_removed_from_pq = 0;
     }
+
+    if (flag_removed_from_pq != 0) U.isGEqualRhs(coord_u);
+
+    return flag_removed_from_pq;
   }
 
   void computeShortestPath() {
@@ -173,37 +153,19 @@ class PlannerDstar {
     pair<double, double> k_old;
     pair<double, double> k_u_new;
 
+    int flag_removed_from_pq_by_pop = 0;
+    int flag = 0;
+
     while (isSmallerKey(key_u, calculateKey(coord_start)) ||
            s_start->get_rhs_value() != s_start->get_g_value()) {
-      // if (flag_replan == 0) U.printNodeKey();
-      // if (flag_replan == 1) {
-      //   cout << "enter cond 1: "
-      //        << isSmallerKey(key_u, calculateKey(coord_start)) << endl;
-      //   cout << "enter cond 2: "
-      //        << (s_start->get_rhs_value() != s_start->get_g_value()) << endl;
-
-      //   cout << "s_top: " << coord_u[0] << ", " << coord_u[1] << ", "
-      //        << coord_u[2] << " ";
-      //   print_key(key_u);
-      //   cout << "s_start: " << coord_start[0] << ", " << coord_start[1] << ",
-      //   "
-      //        << coord_start[2] << " ";
-      //   print_key(calculateKey(coord_start));
-      // }
-
       k_old = key_u;
-      U.pop(coord_u);
+      flag_removed_from_pq_by_pop = U.pop(coord_u);
 
       k_u_new = calculateKey(coord_u);
       if (isSmallerKey(k_old, k_u_new)) {
-        // if (flag_replan == 1)
-        //   cout << " ------ computeShorestPath situation 1 ------ " << endl;
-
         U.insert(coord_u, k_u_new);
+        flag_removed_from_pq_by_pop = 0;
       } else if (node_u->get_g_value() > node_u->get_rhs_value()) {
-        // if (flag_replan == 1)
-        //   cout << " ------ computeShorestPath situation 2 ------" << endl;
-
         node_u->set_g_value(node_u->get_rhs_value());
 
         for (int dir = 0; dir < NUMOFDIRS; dir++) {
@@ -214,9 +176,6 @@ class PlannerDstar {
           updateVertex({predX, predY, predZ});
         }
       } else {
-        // if (flag_replan == 1)
-        //   cout << " ------ computeShorestPath situation 3 ------" << endl;
-
         node_u->set_g_value(DBL_MAX);
 
         for (int dir = 0; dir < NUMOFDIRS; dir++) {
@@ -226,16 +185,23 @@ class PlannerDstar {
 
           updateVertex({predX, predY, predZ});
         }
-        updateVertex(coord_u);
+        flag = updateVertex(coord_u);
       }
+
+      if (flag_removed_from_pq_by_pop == 1 && flag == 1)
+        cout << "removed by U.pop() and didn't meet cond. 1." << endl;
 
       coord_u = U.top();
       key_u = U.topKey(coord_u);
       node_u = U.getNode(coord_u);
+
+      flag_removed_from_pq_by_pop = 0;
+      flag = 0;
     }
 
     // cout << "OUT!!" << endl;
-    // cout << "exit cond 1: " << isSmallerKey(key_u, calculateKey(coord_start))
+    // cout << "exit cond 1: " << isSmallerKey(key_u,
+    // calculateKey(coord_start))
     //      << endl;
     // cout << "exit cond 2: "
     //      << (s_start->get_rhs_value() != s_start->get_g_value()) << endl;
@@ -296,6 +262,7 @@ class PlannerDstar {
 
         computeShortestPath();
         num_replan++;
+        U.flag_replan++;
         cout << "**** RE-PLANED " << num_replan << " ****";
         cout << "s_start: " << coord_start[0] << ", " << coord_start[1] << ", "
              << coord_start[2] << endl;
@@ -304,7 +271,7 @@ class PlannerDstar {
       // move coord_start to coord_next
       if (sensor.is_valid(
               Coord(coord_start[0], coord_start[1], coord_start[2]))) {
-        array<int, 3> coord_succ_min;
+        array<int, 3> coord_succ_min = coord_start;
         double min_cost_and_g = DBL_MAX;
         double min_tmp;
 
@@ -328,7 +295,15 @@ class PlannerDstar {
           }
         }
 
-        update_s_start(coord_succ_min);
+        if (coord_succ_min != coord_start)
+          update_s_start(coord_succ_min);
+        else {
+          cout << "**** TRAPPED ****" << endl;
+          return;
+        }
+      } else {
+        cout << "**** WHY ROBOT is already TRAPPED ****" << endl;
+        return;
       }
     }
 
@@ -347,11 +322,38 @@ class PlannerDstar {
     vector<int> xyz{coord_start[0], coord_start[1], coord_start[2]};
     solution.push_back(xyz);
 
-    // if (flag_replan == 1) {
-    //   cout << "s_start: " << coord_start[0] << ", " << coord_start[1] << ", "
+    // if (num_replan > 250) {
+    //   cout << "s_start: " << coord_start[0] << ", " << coord_start[1] << ",
+    //   "
     //        << coord_start[2] << endl;
     //   U.printAroundNode(coord_start);
     // }
+
+    if (U.getNode(coord_new)->get_g_value() >
+        U.getNode(coord_start)->get_g_value())
+      cout << "**** SOMETHING WRONG ****" << endl;
+
+    if (U.getNode(coord_new)->get_g_value() !=
+        U.getNode(coord_new)->get_rhs_value()) {
+      cout << "**** SOMETHING WRONG (inconsistent state) ****" << endl;
+      U.printAroundNode(coord_new);
+    }
+
+    if (U.getNode(coord_new)->get_g_value() == DBL_MAX &&
+        U.getNode(coord_new)->get_rhs_value() == DBL_MAX) {
+      cout << "**** SOMETHING WRONG (state g and f both inf.) ****" << endl;
+      U.printAroundNode(coord_new);
+    }
+
+    if (U.getNode(coord_new)->get_g_value() == DBL_MAX) {
+      cout << "**** SOMETHING WRONG (state g inf.) ****" << endl;
+      U.printAroundNode(coord_new);
+    }
+
+    if (U.getNode(coord_new)->get_rhs_value() == DBL_MAX) {
+      cout << "**** SOMETHING WRONG (state g inf.) ****" << endl;
+      U.printAroundNode(coord_new);
+    }
 
     coord_start = coord_new;
     idx_start = U.umap[coord_start];
@@ -367,13 +369,12 @@ class PlannerDstar {
 
   vector<vector<int>> getPath() { return this->solution; }
 
-  // int flag_replan = 0;
+  /* TEST FUNCTION */
+  void print_key(pair<double, double> key) const {
+    cout << " key: <" << key.first << ", " << key.second << ">";
+  }
 
-  // void print_key(pair<double, double> key) const {
-  //   cout << " key: <" << key.first << ", " << key.second << ">" << endl;
-  // }
-
-  int num_replan = 0;
+  int num_replan = U.flag_replan;
 };
 }  // namespace CF_PLAN
 
