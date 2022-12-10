@@ -14,26 +14,6 @@ using namespace std;
 
 namespace CF_PLAN {
 
-#ifdef FULL_CONNECT
-// 26-connected grid
-int dX[NUMOFDIRS] = {0,  0,  1, 0, 1,  1,  1, -1, 0,  0, -1, -1, 0,
-                     -1, -1, 1, 1, -1, -1, 1, -1, -1, 0, 0,  1,  1};
-int dY[NUMOFDIRS] = {0,  1, 0,  1, 0,  1, 1,  0, -1, 0,  -1, 0,  -1,
-                     -1, 1, -1, 1, -1, 1, -1, 0, 1,  -1, 1,  -1, 0};
-int dZ[NUMOFDIRS] = {1,  0, 0, 1,  1, 0,  1,  0, 0, -1, 0,  -1, -1,
-                     -1, 1, 1, -1, 1, -1, -1, 1, 0, 1,  -1, 0,  -1};
-double cost[NUMOFDIRS] = {1,     1,     1,     sqrt2, sqrt2, sqrt2, sqrt3,
-                          1,     1,     1,     sqrt2, sqrt2, sqrt2, sqrt3,
-                          sqrt3, sqrt3, sqrt3, sqrt3, sqrt3, sqrt3, sqrt2,
-                          sqrt2, sqrt2, sqrt2, sqrt2, sqrt2};
-#else
-// 6-connected grid
-int dX[NUMOFDIRS] = {0, 0, 1, 0, 0, -1};
-int dY[NUMOFDIRS] = {0, 1, 0, 0, -1, 0};
-int dZ[NUMOFDIRS] = {1, 0, 0, -1, 0, 0};
-double cost[NUMOFDIRS] = {1, 1, 1, 1, 1, 1};
-#endif
-
 class nodeDstar {
  private:
   int x;
