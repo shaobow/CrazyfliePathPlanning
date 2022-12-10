@@ -1,6 +1,8 @@
 #ifndef PLANNERDSTAR_H__
 #define PLANNERDSTAR_H__
 
+#include <math.h>
+
 #include <utility>
 
 #include "openList.hpp"
@@ -9,6 +11,7 @@
 
 using namespace std;
 namespace CF_PLAN {
+
 class plannerDstar {
  private:
   array<int, 3> coord_goal;
@@ -30,22 +33,24 @@ class plannerDstar {
 
   vector<vector<double>> solution;
 
+  // pair<double, double> calculateKey(array<int, 3>& coord_u);
+  pair<double, double> calculateKey(nodeDstar* node_u);
+  void initialize();
+  void updateVertex(array<int, 3>& coord_u);
+  void computeShortestPath();
+
+  void update_s_start(array<int, 3>& coord_new);
+  void update_s_last();  // s_last = s_start
+
+  bool isNotGoalCoord(const array<int, 3>& coord_u);
+
  public:
   plannerDstar(double robot_x, double robot_y, double robot_z, double goal_x,
                double goal_y, double goal_z, const std::string& file_path,
                double grid_size, double margin_size);
   ~plannerDstar() = default;
 
-  // pair<double, double> calculateKey(array<int, 3>& coord_u);
-  pair<double, double> calculateKey(nodeDstar* node_u);
-  void initialize();
-  void updateVertex(array<int, 3>& coord_u);
-  void computeShortestPath();
   void plan();
-
-  void update_s_start(array<int, 3>& coord_new);
-  void update_s_last();  // s_last = s_start
-
   void printPath() const;
   vector<vector<double>> getPath() const;
 };

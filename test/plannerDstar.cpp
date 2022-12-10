@@ -63,7 +63,33 @@ void plannerDstar::computeShortestPath() {
       node_u->set_g_value(node_u->get_rhs_value());
       U.remove(coord_u);
 
+      nodeDstar* node_pred;
+      array<int, 3> coord_pred;
       for (int dir = 0; dir < NUMOFDIRS; dir++) {
+        int predX = coord_u[0] + dX[dir];
+        int predY = coord_u[1] + dY[dir];
+        int predZ = coord_u[2] + dZ[dir];
+
+        coord_pred = {predX, predY, predZ};
+        if (isNotGoalCoord(coord_pred)) {
+          node_pred = U.getNode(coord_pred);
+          node_pred->set_rhs_value(std::min(node_pred->get_rhs_value(),
+                                            cost[dir] + node_u->get_g_value()));
+        }
+        updateVertex(coord_pred);
+      }
+    } else {
+      int g_old = node_u->get_g_value();
+      node_u->set_g_value(MAXDOUBLE);
+
+      nodeDstar* node_pred;
+      array<int, 3> coord_pred;
+      for (int dir = 0; dir < NUMOFDIRS; dir++) {  // TODO: add u
+        int predX = coord_u[0] + dX[dir];
+        int predY = coord_u[1] + dY[dir];
+        int predZ = coord_u[2] + dZ[dir];
+
+        coord_pred = {predX, predY, predZ};
       }
     }
 
@@ -73,13 +99,22 @@ void plannerDstar::computeShortestPath() {
   }
 }
 
-void plannerDstar::plan() {}
-
 void plannerDstar::update_s_start(array<int, 3>& coord_new) {}
 
 void plannerDstar::update_s_last() {}
 
-void plannerDstar::printPath() const {}
+bool plannerDstar::isNotGoalCoord(const array<int, 3>& coord_u) {
+  return coord_u[0] != coord_goal[0] || coord_u[1] != coord_goal[1] ||
+         coord_u[2] != coord_goal[2];
+}
 
-vector<vector<double>> plannerDstar::getPath() const {}
+void plannerDstar::plan() {}
+
+void plannerDstar::printPath() const {
+  for (auto pt : solution) {
+    cout << pt[0] << "," << pt[1] << "," << pt[2] << endl;
+  }
+}
+
+vector<vector<double>> plannerDstar::getPath() const { return this->solution; }
 }  // namespace CF_PLAN
