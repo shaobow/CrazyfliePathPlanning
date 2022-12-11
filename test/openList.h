@@ -135,24 +135,13 @@ class openList {
     umap.clear();
   }
 
-  bool empty() { return pq.size() == 0; }
-
   nodeDstar* getNode(array<int, 3> coord_u) {
     Idx idx_u;
     if (umap.count(coord_u) == 0) {
       idx_u = add_node(coord_u[0], coord_u[1], coord_u[2]);
       umap[coord_u] = idx_u;
-
-      // if (flag_replan == 1)
-      //   cout << "[doesn't] node: " << coord_u[0] << ", " << coord_u[1] << ",
-      //   "
-      //        << coord_u[2] << endl;
     } else {
       idx_u = umap[coord_u];
-
-      // if (flag_replan == 1)
-      //   cout << "[exit] node: " << coord_u[0] << ", " << coord_u[1] << ", "
-      //        << coord_u[2] << endl;
     }
 
     return node_list[idx_u].get();
@@ -182,8 +171,6 @@ class openList {
     cout << endl;
   }
 
-  int flag_replan = 10;
-
   void isGEqualRhs(array<int, 3> coord_u) {
     nodeDstar* node_u = node_list[umap[coord_u]].get();
 
@@ -194,6 +181,6 @@ class openList {
       printAroundNode(coord_u);
     }
   }
-};  // namespace CF_PLAN
+};
 }  // namespace CF_PLAN
 #endif

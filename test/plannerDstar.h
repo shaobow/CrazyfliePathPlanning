@@ -18,17 +18,6 @@
 using namespace std;
 
 namespace CF_PLAN {
-// #define FULL_CONNECT
-
-// #ifdef FULL_CONNECT
-// #define NUMOFDIRS 26
-// #else
-// #define NUMOFDIRS 6
-// #endif
-
-// #define sqrt2 1.414f
-// #define sqrt3 1.732f
-// #define cost_inf DBL_MAX
 
 class PlannerDstar {
  private:
@@ -198,16 +187,6 @@ class PlannerDstar {
       flag_removed_from_pq_by_pop = 0;
       flag = 0;
     }
-
-    // cout << "OUT!!" << endl;
-    // cout << "exit cond 1: " << isSmallerKey(key_u,
-    // calculateKey(coord_start))
-    //      << endl;
-    // cout << "exit cond 2: "
-    //      << (s_start->get_rhs_value() != s_start->get_g_value()) << endl;
-    // print_key(calculateKey(coord_start));
-    // cout << "s_start: " << coord_start[0] << ", " << coord_start[1] << ", "
-    //      << coord_start[2] << endl;
   }
 
   void initialize() {
@@ -262,7 +241,6 @@ class PlannerDstar {
 
         computeShortestPath();
         num_replan++;
-        U.flag_replan++;
         cout << "**** RE-PLANED " << num_replan << " ****";
         cout << "s_start: " << coord_start[0] << ", " << coord_start[1] << ", "
              << coord_start[2] << endl;
@@ -374,7 +352,9 @@ class PlannerDstar {
     cout << " key: <" << key.first << ", " << key.second << ">";
   }
 
-  int num_replan = U.flag_replan;
+  int num_replan = 0;
+
+  const int sensor_range = sensor.getRange();
 };
 }  // namespace CF_PLAN
 

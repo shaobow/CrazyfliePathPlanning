@@ -12,7 +12,7 @@
 
 #define MAXDOUBLE DBL_MAX
 
-#define FULL_CONNECT
+// #define FULL_CONNECT
 
 #ifdef FULL_CONNECT
 #define NUMOFDIRS 26
@@ -20,8 +20,10 @@
 #define NUMOFDIRS 6
 #endif
 
-#define sqrt2 1.414f
-#define sqrt3 1.732f
+// #define sqrt2 1.414f
+// #define sqrt3 1.732f
+#define sqrt2 1.415f
+#define sqrt3 1.733f
 #define cost_inf DBL_MAX
 
 namespace CF_PLAN {

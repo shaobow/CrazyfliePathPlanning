@@ -57,15 +57,18 @@ vector<vector<int>> plan(int map_id, double grid_size, double margin_size) {
   dstarLite.plan();
   stop = chrono::high_resolution_clock::now();
   auto solve_time = chrono::duration_cast<chrono::milliseconds>(stop - start);
-  // dstarLite.printPath();
+  dstarLite.printPath();
   auto solution = dstarLite.getPath();
+  std::cout << "map: " << map_id << ", connection: " << NUMOFDIRS
+            << ", sensor range: " << dstarLite.sensor_range << endl;
   std::cout << "D* Lite planner takes " << solve_time.count() / 1000.0
             << " seconds to find solution.\n";
+  std::cout << "Num replanned " << dstarLite.num_replan << endl;
   return solution;
 }
 
 int main() {
-  int map_id = 3;
+  int map_id = 1;
   double grid_size = 0.2;
   double margin_size = 0.2;
 

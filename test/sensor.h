@@ -30,6 +30,8 @@ class Sensor {
 
   Coord convert_point(const double& x, const double& y, const double& z);
   std::vector<double> convert_idx(const Coord& idx);
+
+  int getRange() const;
 };
 
 }  // namespace CF_PLAN

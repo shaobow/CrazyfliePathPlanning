@@ -56,6 +56,8 @@ Coord Sensor::convert_point(const double& x, const double& y, const double& z) {
   return static_world.convert_point(x, y, z);
 }
 
+int Sensor::getRange() const { return this->range; }
+
 std::vector<double> Sensor::convert_idx(const Coord& idx) {
   return static_world.convert_idx(idx);
 }

@@ -38,22 +38,10 @@ class nodeDstar {
   int y;
   int z;
 
-  // dynamic info
-  double yaw;
-
-  // time info
-  // int time;
-
   // D* Lite search
   double g_value = DBL_MAX;
   double rhs_value = DBL_MAX;  // default: rhs(s) = g(s) = inf.
   pair<double, double> key;    // k(s) = [f(s); g*(s)]
-
-  double cost;
-
-  // double h_value = -1;  // -1: h-value hasn't set
-
-  // const double weight = 5.0f;
 
  public:
   nodeDstar(int x, int y, int z) {
@@ -95,8 +83,6 @@ class nodeDstar {
     this->key.second = k.second;
   }
 
-  // void set_back_ptr(nodeDstar* ptr) { this->backpointer = ptr; }
-
   double calc_h_value(nodeDstar* n_start) {
     return sqrt(pow(n_start->getX() - this->x, 2) +
                 pow(n_start->getY() - this->y, 2) +
@@ -110,8 +96,6 @@ class nodeDstar {
   double get_rhs_value() const { return this->rhs_value; }
 
   pair<double, double> get_key() const { return this->key; }
-
-  // nodeDstar* get_back_ptr() const { return this->backpointer; }
 
   void print_node() const {
     cout << "node: " << this->x << ", " << this->y << ", " << this->z << endl;
