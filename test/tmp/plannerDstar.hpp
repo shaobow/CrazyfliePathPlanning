@@ -52,6 +52,8 @@ class plannerDstar {
 
   vector<vector<double>> solution;
 
+  int num_replan = 0;
+
   pair<double, double> calculateKey(nodeDstar* node_u);
   void initialize();
   void updateVertex(const array<int, 3>& coord_u);

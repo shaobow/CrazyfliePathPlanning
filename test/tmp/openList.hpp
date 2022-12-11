@@ -12,7 +12,7 @@ using namespace std;
 namespace CF_PLAN {
 class openList {
  private:
-  unordered_map<array<int, 3>, pair<double, double>> pq;
+  unordered_map<array<int, 3>, pair<double, double>, arrayHash> pq;
 
   int add_node(int x, int y, int z);
 

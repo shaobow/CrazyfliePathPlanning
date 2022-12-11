@@ -151,6 +151,11 @@ void plannerDstar::plan() {
         }
       }
       computeShortestPath();
+
+      num_replan++;
+      cout << "**** RE-PLANED " << num_replan << " ****";
+      cout << "s_start: " << coord_start[0] << ", " << coord_start[1] << ", "
+           << coord_start[2] << endl;
     }
   }
 }

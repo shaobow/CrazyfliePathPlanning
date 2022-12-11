@@ -51,11 +51,18 @@ void openList::remove(const array<int, 3>& coord_u) {
 }
 
 std::array<int, 3> openList::top() {
+  // find min key
   pair<double, double> tmp_key_top(DBL_MAX, DBL_MAX);
   array<int, 3> coord_top;
 
   for (auto itr = pq.begin(); itr != pq.end(); itr++) {
+    if (isSmallerkey(itr->second, tmp_key_top)) {
+      coord_top = itr->first;
+      tmp_key_top = itr->second;
+    }
   }
+
+  return coord_top;
 }
 
 pair<double, double> openList::topKey(const array<int, 3>& coord_top) {

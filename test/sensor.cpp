@@ -46,6 +46,7 @@ bool Sensor::is_valid(const Coord& robot_state) {
   if (static_world.is_ocp(robot_state)) {
     return false;
   }
+
   return true;
 }
 
