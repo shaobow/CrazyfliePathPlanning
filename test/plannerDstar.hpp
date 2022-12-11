@@ -3,6 +3,7 @@
 
 #include <math.h>
 
+#include <algorithm>
 #include <utility>
 #include <vector>
 
@@ -60,9 +61,14 @@ class plannerDstar {
   void reassign_s_last(); /* s_last = s_start */
   double get_new_edge_cost(const array<int, 3>& coord_lhs,
                            const array<int, 3>& coord_rhs, const int dir);
+  double get_old_edg_cost(const array<int, 3>& coord_lhs,
+                          const array<int, 3>& coord_rhs, const int dir,
+                          const vector<Coord>& Coord_updated);
   Coord convert_Coord(const array<int, 3>& coord);
-  array<int, 3> generate_neighbor(const array<int, 3>& coord_u, int dir);
-  void update_due_2_edge_cost(const array<int, 3>& coord_updated);
+  array<int, 3> generate_neighbor(const array<int, 3>& coord_u, const int dir);
+  void update_due_2_edge_cost(const array<int, 3>& coord_u,
+                              const array<int, 3>& coord_v, const int dir,
+                              const vector<Coord>& Coord_updated);
 
  public:
   plannerDstar(double robot_x, double robot_y, double robot_z, double goal_x,

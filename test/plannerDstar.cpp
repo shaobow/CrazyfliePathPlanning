@@ -130,33 +130,66 @@ void plannerDstar::plan() {
       km += s_last->calc_h_value(s_start);
       reassign_s_last();
 
-      for (auto itr : Coord_updated) { /* coord that becomes obstacles*/
-        update_due_2_edge_cost({itr.x, itr.y, itr.z});
-      }
+      /* for all directed edges (u, v) with changed edge costs */
+      array<int, 3> coord_updated;  // coord_u
+      array<int, 3> coord_nb;       // coord_u
+      array<int, 3> coord_v;
+      for (auto itr : Coord_updated) {
+        /* STEP 1: update obstacle cell itself */
+        coord_updated = {itr.x, itr.y, itr.z};
+        for (int dir_v = 0; dir_v < NUMOFDIRS; dir_v++) {
+          coord_v = generate_neighbor(coord_updated, dir_v);
+          update_due_2_edge_cost(coord_updated, coord_v, dir_v,
+                                 Coord_updated);  // 26 times
+        }
 
+        /* STEP 2: update neighbor */
+        for (int dir_nb = 0; dir_nb < NUMOFDIRS; dir_nb++) {
+          coord_nb = generate_neighbor(coord_updated, dir_nb);
+          update_due_2_edge_cost(coord_nb, coord_updated, dir_nb,
+                                 Coord_updated);  // 26 times
+        }
+      }
       computeShortestPath();
     }
   }
 }
 
-void plannerDstar::update_due_2_edge_cost(const array<int, 3>& coord_updated) {
-  // TODO: update the edge cost !!!!!!!!!!!!!!
-  /* STEP 1: update obstacle cell itself */
-  array<int, 3> coord_v;
-  double cost_old;
-  double cost_new;
-  for (int dir_v = 0; dir_v < NUMOFDIRS; dir_v++) {
-    coord_v = generate_neighbor(coord_updated, dir_v);
-    cost_new;
-  }
+void plannerDstar::update_due_2_edge_cost(const array<int, 3>& coord_u,
+                                          const array<int, 3>& coord_v,
+                                          const int dir,
+                                          const vector<Coord>& Coord_updated) {
+  /* just update current state */
+  nodeDstar* node_u = U.getNode(coord_u);
+  nodeDstar* node_v = U.getNode(coord_v);
 
-  /* STEP 2: update neighbor */
-  array<int, 3> coord_nb;
-  for (int dir_nb = 0; dir_nb < NUMOFDIRS; dir_nb++) {
-    coord_nb = generate_neighbor(coord_updated, dir_nb);
-  }
+  double cost_old = get_old_edg_cost(coord_u, coord_v, dir, Coord_updated);
+  double cost_new = get_new_edge_cost(coord_u, coord_v, dir);
 
-  updateVertex(coord_updated);
+  if (cost_old > cost_new) {
+    if (coord_u != coord_goal) {
+      node_u->set_rhs_value(
+          std::min(node_u->get_rhs_value(), cost_new + node_v->get_g_value()));
+    }
+  } else if (node_u->get_rhs_value() == cost_old + node_v->get_g_value()) {
+    if (coord_u != coord_goal) {
+      array<int, 3> coord_s_prime;
+      double rhs_tmp = cost_inf;
+      double rhs_min = rhs_tmp;
+
+      for (int dir_succ = 0; dir_succ < NUMOFDIRS; dir_succ++) {
+        /* s' within Succ(s) */
+        coord_s_prime = generate_neighbor(coord_u, dir_succ);
+
+        rhs_tmp = get_new_edge_cost(coord_u, coord_s_prime, dir_succ) +
+                  U.getNode(coord_s_prime)->get_g_value();
+
+        if (rhs_tmp < rhs_min) rhs_min = rhs_tmp;
+      }
+      node_u->set_rhs_value(rhs_min);
+    }
+  }
+  updateVertex(coord_u);
 }
 
 void plannerDstar::move_s_start() {
@@ -203,12 +236,31 @@ double plannerDstar::get_new_edge_cost(const array<int, 3>& coord_lhs,
   return cost_new;
 }
 
+double plannerDstar::get_old_edg_cost(const array<int, 3>& coord_lhs,
+                                      const array<int, 3>& coord_rhs,
+                                      const int dir,
+                                      const vector<Coord>& Coord_updated) {
+  double cost_old = cost[dir];
+
+  if (!sensor.is_valid(convert_Coord(coord_lhs)) &&
+      !sensor.is_valid(convert_Coord(coord_rhs))) {
+    if (std::find(Coord_updated.begin(), Coord_updated.end(),
+                  convert_Coord(coord_lhs)) != Coord_updated.end() ||
+        std::find(Coord_updated.begin(), Coord_updated.end(),
+                  convert_Coord(coord_rhs)) != Coord_updated.end()) {
+      cost_old = cost_inf;
+    }
+  }
+
+  return cost_old;
+}
+
 Coord plannerDstar::convert_Coord(const array<int, 3>& coord) {
   return Coord(coord[0], coord[1], coord[2]);
 }
 
 array<int, 3> plannerDstar::generate_neighbor(const array<int, 3>& coord_u,
-                                              int dir) {
+                                              const int dir) {
   if (dir == NUMOFDIRS + 1) return coord_u;
   return {coord_u[0] + dX[dir], coord_u[1] + dY[dir], coord_u[2] + dZ[dir]};
 }
