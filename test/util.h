@@ -77,6 +77,17 @@ struct arrayHash {
   }
 };
 
+struct arrayCompare {
+  bool operator()(const std::array<int, 3>& lhs,
+                  const std::array<int, 3>& rhs) const {
+    if (lhs[0] < rhs[0])
+      return true;
+    else if (lhs[1] < rhs[1])
+      return true;
+    return lhs[2] < rhs[2];
+  }
+};
+
 }  // namespace CF_PLAN
 
 #endif

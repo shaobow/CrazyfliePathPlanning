@@ -68,7 +68,7 @@ vector<vector<int>> plan(int map_id, double grid_size, double margin_size) {
 }
 
 int main() {
-  int map_id = 1;
+  int map_id = 3;
   double grid_size = 0.2;
   double margin_size = 0.2;
 

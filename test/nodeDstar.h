@@ -49,9 +49,6 @@ class nodeDstar {
     this->y = y;
     this->z = z;
 
-    this->g_value = DBL_MAX;
-    this->rhs_value = DBL_MAX;
-
     this->key.first = DBL_MAX;
     this->key.second = DBL_MAX;
   }
@@ -73,11 +70,6 @@ class nodeDstar {
 
   void set_rhs_value(double rhs_value) { this->rhs_value = rhs_value; }
 
-  void set_key(double k1, double k2) {
-    this->key.first = k1;
-    this->key.second = k2;
-  }
-
   void set_key(pair<double, double> k) {
     this->key.first = k.first;
     this->key.second = k.second;
@@ -88,7 +80,6 @@ class nodeDstar {
                 pow(n_start->getY() - this->y, 2) +
                 pow(n_start->getZ() - this->z,
                     2));  // Euclidean distance in 3D
-                          // this->h_value = 0;
   }
 
   double get_g_value() const { return this->g_value; }

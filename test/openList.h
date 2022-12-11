@@ -14,6 +14,7 @@ namespace CF_PLAN {
 class openList {
  private:
   unordered_map<array<int, 3>, pair<double, double>, arrayHash> pq;
+  // map<array<int, 3>, pair<double, double>, arrayCompare> pq;
 
   bool isSmallerKey(const pair<double, double>& lhs,
                     const pair<double, double>& rhs) {
@@ -44,11 +45,6 @@ class openList {
     auto itr = pq.find(u);
     Idx idx_new;
 
-    if (key_u.first == DBL_MAX && key_u.second == DBL_MAX) {
-      cout << "**** g and rhs both inf. when insert? ****" << endl;
-      printAroundNode(u);
-    }
-
     if (itr != pq.end()) {
       idx_new = umap[u];
       node_list[idx_new].get()->set_key(key_u);
@@ -67,27 +63,11 @@ class openList {
     }
   }
 
-  // int remove(array<int, 3> u) {
-  //   auto itr = pq.find(u);
-  //   if (itr != pq.end()) {  // u within U
-  //     pq.erase(itr);
-  //   }
-
-  //   return 1;
-  // }
-
-  // bool isInOpenList(array<int, 3> u) {
-  //   auto itr = pq.find(u);
-  //   return itr != pq.end();
-  // }
-
-  int isInOpenList_and_remove(array<int, 3> u) {
+  void isInOpenList_and_remove(array<int, 3> u) {
     auto itr = pq.find(u);
     if (itr != pq.end()) {  // in openlist and removed
       pq.erase(itr);
-      return 1;
     }
-    return 0;  // not in openList
   }
 
   array<int, 3> top() {
@@ -105,35 +85,13 @@ class openList {
     return coord_top;
   }
 
-  // pair<double, double> topKey() {
-  //   array<int, 3> coord_top = this->top();
-  //   Idx idx_top = umap[coord_top];
-  //   return node_list[idx_top].get()->get_key();
-  // }
-
   // alternative of topKey() to avoid search twice
   pair<double, double> topKey(array<int, 3> coord_top) {
     Idx idx_top = umap[coord_top];
     return node_list[idx_top].get()->get_key();
   }
 
-  // void pop() {
-  //   array<int, 3> coord_top = this->top();
-  //   this->remove(coord_top);
-  // }
-
-  // void pop(array<int, 3> coord_top) { this->remove(coord_top); }
-
-  int pop(array<int, 3> coord_top) {
-    pq.erase(pq.find(coord_top));
-    return 1;
-  }
-
-  void clear() {
-    pq.clear();
-    node_list.clear();
-    umap.clear();
-  }
+  void pop(array<int, 3> coord_top) { pq.erase(pq.find(coord_top)); }
 
   nodeDstar* getNode(array<int, 3> coord_u) {
     Idx idx_u;
@@ -147,40 +105,43 @@ class openList {
     return node_list[idx_u].get();
   }
 
-  /* TEST  FUNCTION */
-  void printNodeKey(array<int, 3> coord_u) {
-    if (umap.count(coord_u) == 0)
-      cout << "node (" << coord_u[0] << ", " << coord_u[1] << ", " << coord_u[2]
-           << ") doesn't exit" << endl;
-    else {
-      cout << "node (" << coord_u[0] << ", " << coord_u[1] << ", " << coord_u[2]
-           << ") ";
-      node_list[umap[coord_u]].get()->print_key();
-    }
-  }
+  // /* TEST  FUNCTION */
+  // void printNodeKey(array<int, 3> coord_u) {
+  //   if (umap.count(coord_u) == 0)
+  //     cout << "node (" << coord_u[0] << ", " << coord_u[1] << ", " <<
+  //     coord_u[2]
+  //          << ") doesn't exit" << endl;
+  //   else {
+  //     cout << "node (" << coord_u[0] << ", " << coord_u[1] << ", " <<
+  //     coord_u[2]
+  //          << ") ";
+  //     node_list[umap[coord_u]].get()->print_key();
+  //   }
+  // }
 
-  void printAroundNode(array<int, 3> coord_u) {
-    printNodeKey(coord_u);
-    for (int dir = 0; dir < NUMOFDIRS; dir++) {
-      int predX = coord_u[0] + dX[dir];
-      int predY = coord_u[1] + dY[dir];
-      int predZ = coord_u[2] + dZ[dir];
+  // void printAroundNode(array<int, 3> coord_u) {
+  //   printNodeKey(coord_u);
+  //   for (int dir = 0; dir < NUMOFDIRS; dir++) {
+  //     int predX = coord_u[0] + dX[dir];
+  //     int predY = coord_u[1] + dY[dir];
+  //     int predZ = coord_u[2] + dZ[dir];
 
-      printNodeKey({predX, predY, predZ});
-    }
-    cout << endl;
-  }
+  //     printNodeKey({predX, predY, predZ});
+  //   }
+  //   cout << endl;
+  // }
 
-  void isGEqualRhs(array<int, 3> coord_u) {
-    nodeDstar* node_u = node_list[umap[coord_u]].get();
+  // void isGEqualRhs(array<int, 3> coord_u) {
+  //   nodeDstar* node_u = node_list[umap[coord_u]].get();
 
-    if (node_u->get_g_value() != node_u->get_rhs_value()) {
-      cout << "node (" << coord_u[0] << ", " << coord_u[1] << ", " << coord_u[2]
-           << ") inconsistent while removed. g: " << node_u->get_g_value()
-           << ", rhs: " << node_u->get_rhs_value() << ", U.remove()" << endl;
-      printAroundNode(coord_u);
-    }
-  }
+  //   if (node_u->get_g_value() != node_u->get_rhs_value()) {
+  //     cout << "node (" << coord_u[0] << ", " << coord_u[1] << ", " <<
+  //     coord_u[2]
+  //          << ") inconsistent while removed. g: " << node_u->get_g_value()
+  //          << ", rhs: " << node_u->get_rhs_value() << ", U.remove()" << endl;
+  //     printAroundNode(coord_u);
+  //   }
+  // }
 };
 }  // namespace CF_PLAN
 #endif

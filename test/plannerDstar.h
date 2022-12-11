@@ -38,8 +38,7 @@ class PlannerDstar {
   openList U;
   double km = 0.0;
 
-  // sensor for local map update
-  Sensor sensor;
+  Sensor sensor;  // sensor for local map update
 
   bool isSmallerKey(const pair<double, double>& lhs,
                     const pair<double, double>& rhs) {
@@ -87,10 +86,8 @@ class PlannerDstar {
     return make_pair(min_g_rhs + node_u->calc_h_value(s_start) + km, min_g_rhs);
   }
 
-  int updateVertex(array<int, 3> coord_u) {
+  void updateVertex(array<int, 3> coord_u) {
     nodeDstar* node_u = U.getNode(coord_u);
-
-    int flag_removed_from_pq = 0;
 
     if (coord_u != coord_goal) {
       if (!sensor.is_valid(Coord(coord_u[0], coord_u[1], coord_u[2]))) {
@@ -117,21 +114,11 @@ class PlannerDstar {
       }
     }
 
-    // if (U.isInOpenList(coord_u)) {
-    //   flag_removed_from_pq = U.remove(coord_u);  // return 1
-    // }
-
-    flag_removed_from_pq = U.isInOpenList_and_remove(coord_u);
+    U.isInOpenList_and_remove(coord_u);
 
     if (node_u->get_g_value() != node_u->get_rhs_value()) {
       U.insert(coord_u, calculateKey(coord_u));
-
-      flag_removed_from_pq = 0;
     }
-
-    if (flag_removed_from_pq != 0) U.isGEqualRhs(coord_u);
-
-    return flag_removed_from_pq;
   }
 
   void computeShortestPath() {
@@ -142,18 +129,14 @@ class PlannerDstar {
     pair<double, double> k_old;
     pair<double, double> k_u_new;
 
-    int flag_removed_from_pq_by_pop = 0;
-    int flag = 0;
-
     while (isSmallerKey(key_u, calculateKey(coord_start)) ||
            s_start->get_rhs_value() != s_start->get_g_value()) {
       k_old = key_u;
-      flag_removed_from_pq_by_pop = U.pop(coord_u);
+      U.pop(coord_u);
 
       k_u_new = calculateKey(coord_u);
       if (isSmallerKey(k_old, k_u_new)) {
         U.insert(coord_u, k_u_new);
-        flag_removed_from_pq_by_pop = 0;
       } else if (node_u->get_g_value() > node_u->get_rhs_value()) {
         node_u->set_g_value(node_u->get_rhs_value());
 
@@ -174,18 +157,12 @@ class PlannerDstar {
 
           updateVertex({predX, predY, predZ});
         }
-        flag = updateVertex(coord_u);
+        updateVertex(coord_u);
       }
-
-      if (flag_removed_from_pq_by_pop == 1 && flag == 1)
-        cout << "removed by U.pop() and didn't meet cond. 1." << endl;
 
       coord_u = U.top();
       key_u = U.topKey(coord_u);
       node_u = U.getNode(coord_u);
-
-      flag_removed_from_pq_by_pop = 0;
-      flag = 0;
     }
   }
 
@@ -210,7 +187,7 @@ class PlannerDstar {
         return;
       }
 
-      // check if any edge cost changes Coord_updated =
+      // check if any edge cost changes Coord_updated
       Coord_updated = sensor.update_collision_world(
           Coord(coord_start[0], coord_start[1], coord_start[2]));
       if (Coord_updated.size() != 0) {
@@ -219,12 +196,6 @@ class PlannerDstar {
 
         for (auto itr : Coord_updated) {
           coord_updated = {itr.x, itr.y, itr.z};
-
-          // cout << "\n detect obstacle @ " << itr.x << ", " << itr.y << ", "
-          //      << itr.z << endl;
-
-          // flag_replan = 1;
-          // U.flag_replan = 1;
 
           updateVertex(coord_updated);  // cell of obstacle
           for (int dir = 0; dir < NUMOFDIRS; dir++) {
@@ -235,9 +206,6 @@ class PlannerDstar {
             updateVertex({predX, predY, predZ});
           }
         }
-
-        // cout << "**** RE-PLANNING ****" << endl;
-        // flag_replan = 1;
 
         computeShortestPath();
         num_replan++;
@@ -300,38 +268,31 @@ class PlannerDstar {
     vector<int> xyz{coord_start[0], coord_start[1], coord_start[2]};
     solution.push_back(xyz);
 
-    // if (num_replan > 250) {
-    //   cout << "s_start: " << coord_start[0] << ", " << coord_start[1] << ",
-    //   "
-    //        << coord_start[2] << endl;
-    //   U.printAroundNode(coord_start);
+    // if (U.getNode(coord_new)->get_g_value() >
+    //     U.getNode(coord_start)->get_g_value())
+    //   cout << "**** SOMETHING WRONG ****" << endl;
+
+    // if (U.getNode(coord_new)->get_g_value() !=
+    //     U.getNode(coord_new)->get_rhs_value()) {
+    //   cout << "**** SOMETHING WRONG (inconsistent state) ****" << endl;
+    //   U.printAroundNode(coord_new);
     // }
 
-    if (U.getNode(coord_new)->get_g_value() >
-        U.getNode(coord_start)->get_g_value())
-      cout << "**** SOMETHING WRONG ****" << endl;
+    // if (U.getNode(coord_new)->get_g_value() == DBL_MAX &&
+    //     U.getNode(coord_new)->get_rhs_value() == DBL_MAX) {
+    //   cout << "**** SOMETHING WRONG (state g and f both inf.) ****" << endl;
+    //   U.printAroundNode(coord_new);
+    // }
 
-    if (U.getNode(coord_new)->get_g_value() !=
-        U.getNode(coord_new)->get_rhs_value()) {
-      cout << "**** SOMETHING WRONG (inconsistent state) ****" << endl;
-      U.printAroundNode(coord_new);
-    }
+    // if (U.getNode(coord_new)->get_g_value() == DBL_MAX) {
+    //   cout << "**** SOMETHING WRONG (state g inf.) ****" << endl;
+    //   U.printAroundNode(coord_new);
+    // }
 
-    if (U.getNode(coord_new)->get_g_value() == DBL_MAX &&
-        U.getNode(coord_new)->get_rhs_value() == DBL_MAX) {
-      cout << "**** SOMETHING WRONG (state g and f both inf.) ****" << endl;
-      U.printAroundNode(coord_new);
-    }
-
-    if (U.getNode(coord_new)->get_g_value() == DBL_MAX) {
-      cout << "**** SOMETHING WRONG (state g inf.) ****" << endl;
-      U.printAroundNode(coord_new);
-    }
-
-    if (U.getNode(coord_new)->get_rhs_value() == DBL_MAX) {
-      cout << "**** SOMETHING WRONG (state g inf.) ****" << endl;
-      U.printAroundNode(coord_new);
-    }
+    // if (U.getNode(coord_new)->get_rhs_value() == DBL_MAX) {
+    //   cout << "**** SOMETHING WRONG (state g inf.) ****" << endl;
+    //   U.printAroundNode(coord_new);
+    // }
 
     coord_start = coord_new;
     idx_start = U.umap[coord_start];
