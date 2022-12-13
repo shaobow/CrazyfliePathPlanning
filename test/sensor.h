@@ -17,7 +17,7 @@ class Sensor {
   std::unordered_set<Coord, coordHash> partial_map;
 
   // Sensor range in direction
-  int range = 10;
+  int range = 1;
 
  public:
   Sensor(const std::string& file_path, double grid_size, double margin_size);

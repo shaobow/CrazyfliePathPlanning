@@ -1,6 +1,12 @@
-# map2
-
-boundary 0.0 -5.0 0.0 10.0 30.0 5.0
-
-block  1.0  2.0  0.0 3.5 28.0 5.0 255   0   0
-block  6.5  2.0  0.0 9.0  28.0 5.0 255   0   0
+# An example environment
+# boundary xmin ymin zmin xmax ymax zmax
+# block xmin ymin zmin xmax ymax zmax r g b
+boundary 0.0 0.0 2.0 20.0 20.0 12.0
+block  7.0  0.0  1.0 10  10.0 10.0     0   114    189
+block  0.0  0.0  6.0 7  2.5 8.0     0   114    189
+block  0.0  5  6.0 7  7.5 8.0     126    47   142
+block  0.0  0  8.0 2.5  10  10.0    126    47   142
+block  2.5  8.0  1.0 10.0 10.0 10.0     237   177    32
+block  5.0  9.0  1.0 6.0 17.0 10.0      217    83    25
+block  15.0  10.0  0.0 20  12.0 10.0     0   114    189
+block  10.0  3.0  0.0 15  5.0 10.0     0   114    189

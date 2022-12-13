@@ -12,6 +12,7 @@
 #include <utility>
 #include <vector>
 
+#include "chrono"
 #include "openList.h"
 #include "sensor.h"
 
@@ -174,12 +175,17 @@ class PlannerDstar {
   void plan() {
     update_s_last_2_s_start();
     initialize();
+    auto start = std::chrono::high_resolution_clock::now();
     computeShortestPath();
+    auto stop = std::chrono::high_resolution_clock::now();
+    time_plan =
+        std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
     cout << "**** 1st computeShortestPath() ****" << endl;
 
     vector<Coord> Coord_updated;
     array<int, 3> coord_updated;
     array<int, 3> coord_next;
+    start = std::chrono::high_resolution_clock::now();
     while (coord_start != coord_goal) {
       /* if(g(s_start) == inf) then there is no known path */
       if (s_start->get_g_value() == DBL_MAX) {
@@ -252,6 +258,9 @@ class PlannerDstar {
         return;
       }
     }
+    stop = std::chrono::high_resolution_clock::now();
+    time_replan =
+        std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
 
     cout << "**** REACH GOAL POSE ****" << endl;
     vector<int> xyz{coord_start[0], coord_start[1], coord_start[2]};
@@ -316,6 +325,9 @@ class PlannerDstar {
   int num_replan = 0;
 
   const int sensor_range = sensor.getRange();
+
+  std::chrono::milliseconds time_plan;
+  std::chrono::milliseconds time_replan;
 };
 }  // namespace CF_PLAN
 

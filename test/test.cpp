@@ -11,6 +11,7 @@ namespace {
 const std::string MAP1_PATH = "./maps/map1.txt";
 const std::string MAP2_PATH = "./maps/map2.txt";
 const std::string MAP3_PATH = "./maps/map3.txt";
+const std::string MAP4_PATH = "./maps/map_test.txt";
 }  // namespace
 
 vector<vector<int>> plan(int map_id, double grid_size, double margin_size) {
@@ -22,11 +23,21 @@ vector<vector<int>> plan(int map_id, double grid_size, double margin_size) {
     case 1:
       map_path = MAP1_PATH;
       robot_x = 0.0;
-      robot_y = -4.9;
+      robot_y = -5.0;
       robot_z = 0.2;
       goal_x = 6.0;
-      goal_y = 17.0;
-      goal_z = 5.0;
+      goal_y = 18.0;
+      goal_z = 2.0;
+      break;
+
+    case 2:
+      map_path = MAP2_PATH;
+      robot_x = 5.0;
+      robot_y = 5.0;
+      robot_z = 3.0;
+      goal_x = 13.0;
+      goal_y = 13.0;
+      goal_z = 3.0;
       break;
 
     case 3:
@@ -37,6 +48,16 @@ vector<vector<int>> plan(int map_id, double grid_size, double margin_size) {
       goal_x = 20.0;
       goal_y = 5.0;
       goal_z = 5.0;
+      break;
+
+    case 4:
+      map_path = MAP4_PATH;
+      robot_x = 8.0;
+      robot_y = 0.2;
+      robot_z = 2.0;
+      goal_x = 15.0;
+      goal_y = 18.0;
+      goal_z = 7.0;
       break;
 
     default:
@@ -63,9 +84,19 @@ vector<vector<int>> plan(int map_id, double grid_size, double margin_size) {
             << ", sensor range: " << dstarLite.sensor_range << endl;
   std::cout << "D* Lite planner takes " << solve_time.count() / 1000.0
             << " seconds to find solution.\n";
-  std::cout << "Num replanned " << dstarLite.num_replan << endl;
+  std::cout << "Num of Replanning: " << dstarLite.num_replan << endl;
+  std::cout << "Time for 1st plan: " << dstarLite.time_plan.count() / 1000.0
+            << "; TIme for total replan: "
+            << dstarLite.time_replan.count() / 1000.0 << endl;
   return solution;
 }
+
+// void generateTxtFile(){
+//   ofstream myfile;
+//   myfile.open(".//map1.txt");
+//   myfile << "Writing this to a file.\n";
+//   myfile.close();
+// }
 
 int main() {
   int map_id = 3;
@@ -73,5 +104,6 @@ int main() {
   double margin_size = 0.2;
 
   auto solution = plan(map_id, grid_size, margin_size);
+
   return 0;
 }

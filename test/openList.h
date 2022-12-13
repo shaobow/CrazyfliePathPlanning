@@ -34,6 +34,8 @@ class openList {
   }
 
   openList() {
+    // cout << "OL.clear()" << endl;
+
     pq.clear();
     node_list.clear();
     umap.clear();
@@ -42,8 +44,12 @@ class openList {
   ~openList() = default;
 
   void insert(array<int, 3> u, pair<double, double> key_u) {
+    // cout << "OL.insert()-> find()" << endl;
+
     auto itr = pq.find(u);
     Idx idx_new;
+
+    // cout << "OL.insert()-> end()" << endl;
 
     if (itr != pq.end()) {
       idx_new = umap[u];
@@ -64,7 +70,11 @@ class openList {
   }
 
   void isInOpenList_and_remove(array<int, 3> u) {
+    // cout << "OL.isInOpenList_and_remove()-> find()" << endl;
+
     auto itr = pq.find(u);
+
+    // cout << "OL.isInOpenList_and_remove()-> end()" << endl;
     if (itr != pq.end()) {  // in openlist and removed
       pq.erase(itr);
     }
@@ -73,14 +83,22 @@ class openList {
   array<int, 3> top() {
     // find min key
     pair<double, double> tmp_key = make_pair(DBL_MAX, DBL_MAX);
-    array<int, 3> coord_top;
+    // array<int, 3> coord_top;
+    array<int, 3> coord_top = pq.begin()->first;
+
+    // cout << "OL.top()-> outside of loop" << endl;
 
     for (auto itr = pq.begin(); itr != pq.end(); itr++) {
+      // cout << "OL.top()-> inside of loop" << endl;
+
       if (isSmallerKey(itr->second, tmp_key)) {
         coord_top = itr->first;
         tmp_key = itr->second;
       }
     }
+
+    // cout << "top: ";
+    // print_coord(coord_top);
 
     return coord_top;
   }
@@ -91,7 +109,23 @@ class openList {
     return node_list[idx_top].get()->get_key();
   }
 
-  void pop(array<int, 3> coord_top) { pq.erase(pq.find(coord_top)); }
+  void pop(array<int, 3> coord_top) {
+    // cout << "pop: ";
+    // print_coord(coord_top);
+    // cout << "OL.pop() -> find()" << endl;
+
+    // if (pq.find(coord_top) == pq.end())
+    //   cout << "** something wrong when erase() **" << endl;
+
+    // cout << "OL.pop() -> erase()" << endl;
+
+    // pq.erase(itr);
+    pq.erase(coord_top);
+
+    // cout << "OL.pop() -> over" << endl;
+
+    // pq.erase(pq.find(coord_top));
+  }
 
   nodeDstar* getNode(array<int, 3> coord_u) {
     Idx idx_u;
@@ -105,7 +139,13 @@ class openList {
     return node_list[idx_u].get();
   }
 
-  // /* TEST  FUNCTION */
+  /* TEST  FUNCTION */
+
+  void print_coord(array<int, 3> coord_u) {
+    cout << "node (" << coord_u[0] << ", " << coord_u[1] << ", " << coord_u[2]
+         << ") " << endl;
+  }
+
   // void printNodeKey(array<int, 3> coord_u) {
   //   if (umap.count(coord_u) == 0)
   //     cout << "node (" << coord_u[0] << ", " << coord_u[1] << ", " <<
