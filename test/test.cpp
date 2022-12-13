@@ -91,19 +91,29 @@ vector<vector<int>> plan(int map_id, double grid_size, double margin_size) {
   return solution;
 }
 
-// void generateTxtFile(){
-//   ofstream myfile;
-//   myfile.open(".//map1.txt");
-//   myfile << "Writing this to a file.\n";
-//   myfile.close();
-// }
+void generateTxtFile(int map_id, vector<vector<int>>& solution) {
+  int sensor_range = 1;
+  int connection = 6;
+
+  ofstream myfile;
+  myfile.open("./results/tmp.txt");
+
+  int i = 0;
+  for (auto pt : solution) {
+    myfile << pt[0] << "," << pt[1] << "," << pt[2] << "\n";
+  }
+
+  myfile.close();
+}
 
 int main() {
-  int map_id = 3;
+  int map_id = 4;
   double grid_size = 0.2;
   double margin_size = 0.2;
 
   auto solution = plan(map_id, grid_size, margin_size);
+
+  generateTxtFile(map_id, solution);
 
   return 0;
 }
